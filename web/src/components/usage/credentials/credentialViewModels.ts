@@ -36,6 +36,9 @@ export interface DisplayQuota {
   limit?: number
   remaining?: number
   resetText?: string
+  credits?: boolean
+  available?: boolean
+  expiresAt?: string
   windowSeconds?: number
   windowUsage?: QuotaWindowUsageDisplay
   windowUsageEstimate?: QuotaWindowUsageDisplay
@@ -224,6 +227,9 @@ function toDisplayQuota(row: UsageQuotaRow): DisplayQuota | undefined {
     limit,
     remaining,
     resetText: row.resetAt,
+    credits: row.metric === 'credits',
+    available: row.allowed,
+    expiresAt: row.expiresAt,
     windowSeconds,
     windowUsage: quotaWindowUsage(row),
     windowUsageEstimate: quotaWindowUsageEstimate(row, percentDisplay),
@@ -395,6 +401,9 @@ function quotaPercent(row: UsageQuotaRow, used?: number, limit?: number): { perc
 }
 
 function quotaStatus(row: UsageQuotaRow, percent: number | null, kind: DisplayQuota['percentKind']): QuotaStatus {
+  if (row.metric === 'credits' && (row.allowed === false || (row.expiresAt && Date.parse(row.expiresAt) <= Date.now()))) {
+    return 'danger'
+  }
   if (row.limitReached) {
     return 'danger'
   }
@@ -436,7 +445,7 @@ function quotaUsedPercent(percentDisplay: { percent: number | null; kind: Displa
 }
 
 function isDisplayableQuota(quota: DisplayQuota | undefined): quota is DisplayQuota {
-  return quota !== undefined && quota.barPercent !== null
+  return quota !== undefined && (quota.barPercent !== null || (quota.credits === true && quota.remaining !== undefined))
 }
 
 function credentialDisplayName(identity: UsageIdentity): string {

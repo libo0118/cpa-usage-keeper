@@ -455,6 +455,11 @@ func (c *Client) DeleteAuthFiles(ctx context.Context, names []string) error {
 	return err
 }
 
+func (c *Client) FetchQoderCredits(ctx context.Context, authIndex string) ([]byte, error) {
+	_, body, err := c.doManagementJSONRequest(ctx, "/v0/management/plugins/qoder/credits?auth_index="+url.QueryEscape(authIndex), nil, "qoder credits")
+	return body, err
+}
+
 func (c *Client) CallManagementAPI(ctx context.Context, request apicall.Request) (*apicall.Response, error) {
 	result := &apicall.Response{}
 	_, _, err := c.doManagementJSONPostRequest(ctx, cpaManagementAPICallEndpoint, request, result, "api call")

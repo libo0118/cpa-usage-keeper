@@ -470,6 +470,7 @@ export interface UsageQuotaRow {
   limitReached?: boolean
   window?: UsageQuotaWindow
   resetAt?: string
+  expiresAt?: string
   resetAfterSeconds?: number
   window_usage_tokens?: number
   window_usage_cost?: number

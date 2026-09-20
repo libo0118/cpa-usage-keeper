@@ -1934,6 +1934,22 @@ export function formatQuotaBillingUsageAriaLabel(t: Translate, billingUsage: Non
 function QuotaBar({ quota, quotaUsageMode, showGroupMetadata = true, tooltipAlignRight = false }: { quota: DisplayQuota; quotaUsageMode: QuotaUsageMode; showGroupMetadata?: boolean; tooltipAlignRight?: boolean }) {
   const { t } = useTranslation()
   // 条宽使用剩余额度百分比，颜色跟随剩余风险状态从绿到黄到红。
+  if (quota.credits) {
+    const expired = Boolean(quota.expiresAt && Date.parse(quota.expiresAt) <= Date.now())
+    return (
+      <div className={styles.credentialQuotaBarBlock}>
+        <div className={styles.credentialQuotaBarHeader}>
+          <span>{quota.label}</span>
+          <strong>{t('usage_stats.qoder_remaining', { defaultValue: '剩余' })} {quota.remaining?.toLocaleString()} Credits</strong>
+        </div>
+        {quota.barPercent !== null && <div className={styles.credentialQuotaTrack}><span className={`${styles.credentialQuotaFill} ${credentialToneClassName('credentialQuotaFill', quota.status)}`} style={{ width: `${quota.barPercent}%` }} /></div>}
+        <div className={styles.credentialQuotaMeta}>
+          <span>{t('usage_stats.qoder_used', { defaultValue: '已用' })} {quota.used?.toLocaleString()}{quota.limit !== undefined ? ` / ${quota.limit.toLocaleString()}` : ''}</span>
+          <span>{expired ? t('usage_stats.qoder_expired', { defaultValue: '已到期' }) : quota.available === false ? t('usage_stats.qoder_unavailable', { defaultValue: '不可用' }) : ''}{quota.expiresAt ? ` · ${t('usage_stats.qoder_expiry', { defaultValue: '到期' })} ${new Date(quota.expiresAt).toLocaleString()}` : ''}</span>
+        </div>
+      </div>
+    )
+  }
   const percent = quota.barPercent ?? 0
   const width = `${Math.max(0, Math.min(100, percent))}%`
   const percentLabel = quota.barPercent === null ? '' : `${Math.round(quota.barPercent)}%`

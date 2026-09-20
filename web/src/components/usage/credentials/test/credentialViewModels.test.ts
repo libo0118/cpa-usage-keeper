@@ -54,6 +54,18 @@ function identity(overrides: Partial<UsageIdentity>): UsageIdentity {
 }
 
 describe('credentialViewModels', () => {
+  it('keeps Qoder zero and unknown-capacity credits visible without predicting renewals', () => {
+    const rows = buildAuthFileCredentialRows([identity({ identity: 'qoder', type: 'qoder' })], new Map([
+      ['qoder', quotaResponse('qoder', [
+        { key: 'plan', label: 'Teams', metric: 'credits', remaining: 0, used: 100, limit: 100 },
+        { key: 'shared', label: 'Shared', metric: 'credits', remaining: 0, used: 0, allowed: false },
+        { key: 'dedicated', label: 'SOTA', metric: 'credits', remaining: 19.5, used: 0.5, limit: 20, expiresAt: '2000-01-01T00:00:00Z' },
+      ])],
+    ]))
+    expect(rows[0].displayQuotas).toHaveLength(3)
+    expect(rows[0].displayQuotas[1]).toMatchObject({ remaining: 0, barPercent: null, available: false })
+    expect(rows[0].displayQuotas[2]).toMatchObject({ remaining: 19.5, resetText: undefined, expiresAt: '2000-01-01T00:00:00Z' })
+  })
   it('splits usage identities by auth type while keeping deleted rows for traffic display', () => {
     const groups = splitCredentialIdentities([
       identity({ id: '1', auth_type: 1, identity: 'auth-file' }),
