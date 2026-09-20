@@ -752,6 +752,7 @@ func (s *usageService) ListUsageEvents(ctx context.Context, filter servicedto.Us
 			CostUSD:             row.CostUSD,
 			CostAvailable:       row.CostAvailable,
 			QoderCredits:        row.QoderCredits,
+			WorkBuddyCredits:    row.WorkBuddyCredits,
 			PricingStyle:        row.PricingStyle,
 		})
 	}
@@ -809,6 +810,7 @@ func (s *usageService) StreamUsageEvents(ctx context.Context, filter servicedto.
 			CostAvailable:       row.CostAvailable,
 			QoderCredits:        row.QoderCredits,
 			PricingStyle:        row.PricingStyle,
+			WorkBuddyCredits:    row.WorkBuddyCredits,
 		})
 	}, s.pricing.NewResolver())
 }

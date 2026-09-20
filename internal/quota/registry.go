@@ -14,6 +14,7 @@ func NewDefaultProviderRegistry(caller ManagementClient, configs ProviderConfigs
 		"claude":      NewClaudeProvider(caller, configs.ClaudeUsage, configs.ClaudeProfile),
 		"kimi":        NewKimiProvider(caller, configs.Kimi),
 		"qoder":       qoderProvider{caller: caller},
+		"workbuddy":   workbuddyProvider{caller: caller},
 		"xai":         NewXAIProvider(caller, configs.XAIWeekly, configs.XAIMonthly),
 	})
 }

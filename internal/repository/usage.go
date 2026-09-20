@@ -17,7 +17,7 @@ import (
 )
 
 // usageEventProjectionColumns 限制 usage_events 查询列，避免 Overview 和列表页把 RawJSON 等大字段读入内存。
-const usageEventProjectionColumns = "id, api_group_key, provider, auth_type, request_id, client_ip, x_forwarded_for, user_agent, model, model_alias, reasoning_effort, service_tier, response_service_tier, executor_type, endpoint, timestamp, source, auth_index, failed, latency_ms, ttft_ms, input_tokens, output_tokens, reasoning_tokens, cache_read_tokens, cache_creation_tokens, total_tokens, qoder_credits"
+const usageEventProjectionColumns = "id, api_group_key, provider, auth_type, request_id, client_ip, x_forwarded_for, user_agent, model, model_alias, reasoning_effort, service_tier, response_service_tier, executor_type, endpoint, timestamp, source, auth_index, failed, latency_ms, ttft_ms, input_tokens, output_tokens, reasoning_tokens, cache_read_tokens, cache_creation_tokens, total_tokens, qoder_credits, workbuddy_credits"
 
 // usageOverviewBoundaryEventProjectionColumns 只包含非 Custom Overview 边界卡片计算需要的字段。
 const usageOverviewBoundaryEventProjectionColumns = "api_group_key, model, model_alias, timestamp, failed, input_tokens, output_tokens, reasoning_tokens, cache_read_tokens, cache_creation_tokens, total_tokens, auth_index"
@@ -28,6 +28,7 @@ const usageOverviewRealtimeEventProjectionColumns = "api_group_key, provider, au
 // usageEventProjection 是 usage_events 轻量投影，专门承接 select columns 的查询结果。
 type usageEventProjection struct {
 	QoderCredits        *string
+	WorkBuddyCredits    *string `gorm:"column:workbuddy_credits"`
 	ID                  int64
 	APIGroupKey         string
 	Provider            string
@@ -245,11 +246,12 @@ func streamUsageEventRecordsForQuery(db *gorm.DB, query *gorm.DB, emit func(dto.
 func usageEventProjectionToRecord(event usageEventProjection) dto.UsageEventRecord {
 	// 对前端展示字段统一 trim，避免历史脏数据影响筛选和展示一致性。
 	return dto.UsageEventRecord{
-		QoderCredits: event.QoderCredits,
-		ID:           event.ID,
-		Timestamp:    timeutil.NormalizeStorageTime(event.Timestamp),
-		APIGroupKey:  strings.TrimSpace(event.APIGroupKey),
-		Model:        strings.TrimSpace(event.Model),
+		QoderCredits:     event.QoderCredits,
+		WorkBuddyCredits: event.WorkBuddyCredits,
+		ID:               event.ID,
+		Timestamp:        timeutil.NormalizeStorageTime(event.Timestamp),
+		APIGroupKey:      strings.TrimSpace(event.APIGroupKey),
+		Model:            strings.TrimSpace(event.Model),
 		ModelAlias: func() string {
 			if event.ModelAlias == nil {
 				return ""

@@ -1,12 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import type { UsageEvent } from '@/lib/types'
-import { qoderCreditsCost } from '../qoderCredits'
+import { qoderCreditsCost, workbuddyCreditsCost } from '../qoderCredits'
 
 const base: UsageEvent = {
   timestamp: '2026-09-20T13:00:00+08:00', model: 'lite', model_alias: 'qoder/Lite',
   source: 'Qoder', source_type: 'qoder', failed: false, latency_ms: 100,
   tokens: { input_tokens: 0, output_tokens: 0, reasoning_tokens: 0, cache_read_tokens: 0, cache_creation_tokens: 0, total_tokens: 0 },
 }
+
+it('WorkBuddy reports actual Credits without inventing original amount or free status', () => {
+ const event = { ...base, source_type: 'workbuddy', model_alias: 'workbuddy/Hy3' }
+ expect(workbuddyCreditsCost(event)).toEqual({cost:'—',status:'uncollected'})
+ expect(workbuddyCreditsCost({...event,workbuddy_credits:{}})).toEqual({cost:'—',status:'unavailable'})
+ expect(workbuddyCreditsCost({...event,workbuddy_credits:{credits:0}})).toEqual({cost:'0.00 Credits',status:'reported'})
+ expect(workbuddyCreditsCost({...event,failed:true,workbuddy_credits:{credits:1.005}})).toEqual({cost:'1.01 Credits',status:'reported'})
+ expect(workbuddyCreditsCost({...event,workbuddy_credits:{credits:-1}})?.status).toBe('unavailable')
+ expect(workbuddyCreditsCost({...event,source_type:'codex',model_alias:'gpt-5'})).toBeNull()
+})
 
 describe('Qoder request cost', () => {
   it('separates free, billed, unknown and legacy requests without altering Codex costs', () => {

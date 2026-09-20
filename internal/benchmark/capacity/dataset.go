@@ -27,7 +27,7 @@ import (
 
 const usageEventInsertColumns = entities.UsageEventStorageColumns
 
-const DatasetGeneratorVersion = "production-v9-qoder-credits"
+const DatasetGeneratorVersion = "production-v10-workbuddy-credits"
 
 type GenerateOptions struct {
 	Path              string
@@ -519,7 +519,7 @@ func eventInsertArgs(event generatedEvent) []any {
 		nil, nil, nil, event.Model, event.ModelAlias, event.ReasoningEffort, event.ServiceTier, event.ResponseServiceTier,
 		event.ExecutorType, timestamp, event.Source, event.AuthIndex, event.Failed, true, event.LatencyMS, event.TTFTMS,
 		event.InputTokens, event.OutputTokens, event.ReasoningTokens, event.CachedTokens, event.CacheReadTokens,
-		event.CacheCreationTokens, event.TotalTokens, timestamp, nil, // Synthetic events have no observed Qoder billing.
+		event.CacheCreationTokens, event.TotalTokens, timestamp, nil, nil, // Synthetic events have no observed provider billing.
 	}
 }
 

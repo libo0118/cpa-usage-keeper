@@ -288,6 +288,7 @@ export interface UsageEventTokens {
 
 export interface UsageEvent {
   qoder_credits?: { credits?: number; original_credits?: number; billable?: boolean } | null
+  workbuddy_credits?: { credits?: number } | null
   id?: string
   request_id?: string
   timestamp: string

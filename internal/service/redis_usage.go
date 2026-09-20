@@ -37,6 +37,7 @@ func DecodeRedisUsageMessageWithHeaders(message string, fetchedAt time.Time) (en
 // queuedUsageDetail 对应 CPA Redis 队列中的单条 usage JSON payload。
 type queuedUsageDetail struct {
 	QoderCredits        json.RawMessage `json:"qoder_credits"`
+	WorkBuddyCredits    json.RawMessage `json:"workbuddy_credits"`
 	Timestamp           time.Time       `json:"timestamp"`
 	LatencyMS           int64           `json:"latency_ms"`
 	TTFTMS              *int64          `json:"ttft_ms"`
@@ -118,6 +119,7 @@ func (d queuedUsageDetail) toUsageEvent(fetchedAt time.Time) entities.UsageEvent
 	eventKey := strings.TrimSpace(d.RequestID)
 	return entities.UsageEvent{
 		QoderCredits:        normalizeQoderCredits(d.Provider, d.QoderCredits),
+		WorkBuddyCredits:    normalizeWorkBuddyCredits(d.Provider, d.WorkBuddyCredits),
 		EventKey:            eventKey,
 		APIGroupKey:         apiGroupKey,
 		Provider:            strings.TrimSpace(d.Provider),

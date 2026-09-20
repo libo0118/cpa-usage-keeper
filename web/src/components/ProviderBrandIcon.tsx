@@ -18,6 +18,7 @@ export const PROVIDER_BRAND_ICON_KEYS = [
   'vertex',
   'xai',
   'qoder',
+  'workbuddy',
 ] as const
 
 export type ProviderBrandIconKey = typeof PROVIDER_BRAND_ICON_KEYS[number]
@@ -42,10 +43,12 @@ const providerBrandIconKeyByType: Readonly<Record<string, ProviderBrandIconKey>>
   vertex: 'vertex',
   xai: 'xai',
   qoder: 'qoder',
+  workbuddy: 'workbuddy',
 }
 
 // 品牌资源取自 Lobe Icons；统一复用其 Avatar 圆形容器、背景色与缩放比例。
 const providerBrandIconUrlByKey: Readonly<Record<ProviderBrandIconKey, string>> = {
+  workbuddy: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Ctext x="2" y="19" font-size="20" fill="%23546bcc"%3EW%3C/text%3E%3C/svg%3E',
   antigravity: antigravityIcon,
   claude: claudeIcon,
   codex: codexIcon,

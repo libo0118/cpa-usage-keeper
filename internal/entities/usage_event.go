@@ -39,4 +39,5 @@ type UsageEvent struct {
 	TotalTokens         int64
 	CreatedAt           time.Time `gorm:"serializer:storageTime"`
 	QoderCredits        *string   `gorm:"column:qoder_credits;type:text"`
+	WorkBuddyCredits    *string   `gorm:"column:workbuddy_credits;type:text"`
 }

@@ -1666,6 +1666,18 @@ export function AuthFileQuotaPanel({ row, quotaUsageMode }: { row: AuthFileCrede
     return <div className={styles.credentialQuotaStateSlot}><div className={styles.credentialQuotaState}>{t('usage_stats.credentials_quota_unavailable')}</div></div>
   }
 
+  const workbuddyTotal = row.displayQuotas.find((quota) => quota.key === 'workbuddy.total')
+  if (workbuddyTotal) {
+    const packages = row.displayQuotas.filter((quota) => quota.key.startsWith('workbuddy.package.'))
+    return <div className={styles.credentialQuotaPanel}>
+      <QuotaBar quota={workbuddyTotal} quotaUsageMode={quotaUsageMode} />
+      {packages.length > 0 && <details>
+        <summary>{t('usage_stats.workbuddy_packages', { count: packages.length })}</summary>
+        <div className={styles.credentialQuotaBars}>{packages.map((quota) => <QuotaBar key={quota.key} quota={quota} quotaUsageMode={quotaUsageMode} />)}</div>
+      </details>}
+    </div>
+  }
+
   return (
     <div className={styles.credentialQuotaPanel}>
       <div className={styles.credentialQuotaBars}>

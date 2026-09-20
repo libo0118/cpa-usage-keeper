@@ -4,6 +4,14 @@ const creditsFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false,
 })
 
+export function workbuddyCreditsCost(event: UsageEvent): { cost: string; status: string; original?: string } | null {
+  if (event.source_type?.toLowerCase() !== 'workbuddy' && !event.model_alias?.toLowerCase().startsWith('workbuddy/') && event.workbuddy_credits == null) return null
+  if (event.workbuddy_credits == null) return { cost: '—', status: 'uncollected' }
+  const value = event.workbuddy_credits.credits
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return { cost: '—', status: 'unavailable' }
+  return { cost: `${creditsFormatter.format(value)} Credits`, status: 'reported' }
+}
+
 export function qoderCreditsCost(event: UsageEvent): { cost: string; status: string; original?: string } | null {
   const data = event.qoder_credits
   const qoder = event.source_type?.toLowerCase() === 'qoder' ||
