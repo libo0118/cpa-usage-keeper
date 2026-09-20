@@ -25,6 +25,7 @@ import { useScrollBoundaryContainment } from '@/hooks/useScrollBoundaryContainme
 import type { UsageEvent } from '@/lib/types'
 import { calculateCacheReadRate, formatCompactTokenValue, formatDurationMs, formatUsd } from '@/utils/usage'
 import { RequestEventResultBadge } from '@/components/usage/RequestEventResultBadge'
+import { qoderCreditsCost } from './qoderCredits'
 import styles from './CredentialRequestEventsList.module.scss'
 
 const LOAD_MORE_THRESHOLD_PX = 320
@@ -81,6 +82,7 @@ interface CredentialRequestEventRow {
   ttft: string
   speed: string
   cost: string
+  originalCost?: string
   pricingStyle: string
   executorType: string
   clientIP: string
@@ -373,6 +375,7 @@ const buildRow = (
   const latencyMs = Number.isFinite(event.latency_ms) ? event.latency_ms : null
   const ttftMs = Number.isFinite(event.ttft_ms) ? event.ttft_ms as number : null
   const costAvailable = event.cost_available === true
+  const creditsCost = qoderCreditsCost(event)
   const inputTokens = toNumber(event.tokens?.input_tokens)
   const cacheReadTokens = toNumber(event.tokens?.cache_read_tokens)
   const apiKey = optionalText(event.api_key)
@@ -422,8 +425,9 @@ const buildRow = (
     latency: formatDurationMs(latencyMs),
     ttft: ttftMs && ttftMs > 0 ? formatDurationMs(ttftMs) : '-',
     speed: formatSpeed(event.speed_tps),
-    cost: costAvailable ? formatUsd(toNumber(event.cost_usd)) : '-',
-    pricingStyle,
+    cost: creditsCost?.cost ?? (costAvailable ? formatUsd(toNumber(event.cost_usd)) : '-'),
+    originalCost: creditsCost?.original,
+    pricingStyle: creditsCost ? t('usage_stats.qoder_credits_' + creditsCost.status) : pricingStyle,
     executorType,
     clientIP,
     xForwardedFor,
@@ -726,8 +730,16 @@ export function CredentialRequestEventsList({
             {renderLabeledOverflowText(t('usage_stats.ttft'), row.ttft)}
             {renderLabeledOverflowText(t('usage_stats.speed'), row.speed)}
           </td>
-          <td className={`${styles.stackedCell} ${styles.cost}`.trim()}>
-            {renderOverflowText('strong', row.cost)}
+          <td
+            className={`${styles.stackedCell} ${styles.cost} ${row.originalCost ? styles.costComparison : ''}`.trim()}
+            aria-label={row.originalCost ? t('usage_stats.qoder_credits_comparison', { original: row.originalCost, actual: row.cost }) : undefined}
+          >
+            {row.originalCost
+              ? renderOverflowText('strong', `${row.originalCost} / ${row.cost}`, <>
+                <del className={styles.originalCost}>{row.originalCost}</del>
+                {' / '}{row.cost}
+              </>)
+              : renderOverflowText('strong', row.cost)}
             {renderOverflowText('small', row.pricingStyle)}
           </td>
         </tr>

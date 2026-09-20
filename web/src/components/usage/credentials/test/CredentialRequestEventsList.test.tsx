@@ -172,6 +172,21 @@ describe('CredentialRequestEventsList', () => {
     vi.restoreAllMocks()
   })
 
+  it('shows original and billed Credits in the existing cost cell without a USD estimate', async () => {
+    await act(async () => root.render(
+      <CredentialRequestEventsList
+        events={[{ ...event, source_type: 'qoder', model_alias: 'qoder/Lite',
+          qoder_credits: { credits: 0.009917857, original_credits: 0.009917857, billable: false } }]}
+        loading={false} hasMore={false} loadingMore={false} autoLoadMore onLoadMore={() => undefined}
+      />,
+    ))
+    const cell = container.querySelector('tbody tr:first-child td:last-child')
+    expect(cell?.querySelector('del')?.textContent).toBe('0.01')
+    expect(cell?.textContent).toContain('0.01 / 0.00 Credits')
+    expect(cell?.textContent).toContain('usage_stats.qoder_credits_free')
+    expect(cell?.textContent).not.toContain('$')
+  })
+
   it('renders the compact credential event columns with stacked request metadata', async () => {
     await act(async () => root.render(
       <CredentialRequestEventsList

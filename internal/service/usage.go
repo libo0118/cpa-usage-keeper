@@ -751,6 +751,7 @@ func (s *usageService) ListUsageEvents(ctx context.Context, filter servicedto.Us
 			TotalTokens:         row.TotalTokens,
 			CostUSD:             row.CostUSD,
 			CostAvailable:       row.CostAvailable,
+			QoderCredits:        row.QoderCredits,
 			PricingStyle:        row.PricingStyle,
 		})
 	}
@@ -806,6 +807,7 @@ func (s *usageService) StreamUsageEvents(ctx context.Context, filter servicedto.
 			TotalTokens:         row.TotalTokens,
 			CostUSD:             row.CostUSD,
 			CostAvailable:       row.CostAvailable,
+			QoderCredits:        row.QoderCredits,
 			PricingStyle:        row.PricingStyle,
 		})
 	}, s.pricing.NewResolver())

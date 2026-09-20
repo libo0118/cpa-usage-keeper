@@ -27,7 +27,7 @@ import (
 
 const usageEventInsertColumns = entities.UsageEventStorageColumns
 
-const DatasetGeneratorVersion = "production-v8-month-window-canonical"
+const DatasetGeneratorVersion = "production-v9-qoder-credits"
 
 type GenerateOptions struct {
 	Path              string
@@ -337,7 +337,7 @@ func insertGeneratedEvents(ctx context.Context, sqlDB *sql.DB, options GenerateO
 		if err != nil {
 			return fmt.Errorf("begin benchmark event batch: %w", err)
 		}
-		placeholders := strings.TrimSuffix(strings.Repeat("?,", 33), ",")
+		placeholders := strings.TrimSuffix(strings.Repeat("?,", strings.Count(usageEventInsertColumns, ",")+1), ",")
 		statement, err := tx.PrepareContext(ctx, "INSERT INTO usage_events ("+usageEventInsertColumns+") VALUES ("+placeholders+")")
 		if err != nil {
 			tx.Rollback()
@@ -519,7 +519,7 @@ func eventInsertArgs(event generatedEvent) []any {
 		nil, nil, nil, event.Model, event.ModelAlias, event.ReasoningEffort, event.ServiceTier, event.ResponseServiceTier,
 		event.ExecutorType, timestamp, event.Source, event.AuthIndex, event.Failed, true, event.LatencyMS, event.TTFTMS,
 		event.InputTokens, event.OutputTokens, event.ReasoningTokens, event.CachedTokens, event.CacheReadTokens,
-		event.CacheCreationTokens, event.TotalTokens, timestamp,
+		event.CacheCreationTokens, event.TotalTokens, timestamp, nil, // Synthetic events have no observed Qoder billing.
 	}
 }
 

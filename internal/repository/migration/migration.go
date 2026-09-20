@@ -243,6 +243,7 @@ func orderedMigrations() []databaseMigration {
 		{version: migrationAddUsageEventAPIGroupKeyTimestampIndex, run: addUsageEventAPIGroupKeyTimestampIndexMigration},
 		{version: migrationAddUsageIdentityStatsReset, run: addUsageIdentityStatsResetMigration},
 		{version: migrationAddUsageEventSessionFields, run: addUsageEventSessionFieldsMigration},
+		{version: "20260920_add_qoder_request_credits", run: addQoderRequestCreditsMigration},
 	}
 }
 

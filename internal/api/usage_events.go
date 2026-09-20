@@ -42,6 +42,7 @@ type usageEventFilterOptionsResponse struct {
 }
 
 type usageEventPayload struct {
+	QoderCredits        json.RawMessage        `json:"qoder_credits,omitempty"`
 	ID                  string                 `json:"id,omitempty"`
 	Timestamp           string                 `json:"timestamp"`
 	APIKey              string                 `json:"api_key,omitempty"`
@@ -450,6 +451,7 @@ func buildUsageEventsPayload(rows []servicedto.UsageEventRecord, resolver usageI
 			SpeedTPS:            usageEventSpeedTPS(row),
 			CostUSD:             row.CostUSD,
 			CostAvailable:       row.CostAvailable,
+			QoderCredits:        usageEventQoderCredits(row.QoderCredits),
 			PricingStyle:        strings.TrimSpace(row.PricingStyle),
 			Tokens: usageEventTokenPayload{
 				InputTokens:         row.InputTokens,

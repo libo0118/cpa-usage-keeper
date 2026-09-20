@@ -38,4 +38,5 @@ type UsageEvent struct {
 	CacheCreationTokens int64 `gorm:"not null;default:0"`
 	TotalTokens         int64
 	CreatedAt           time.Time `gorm:"serializer:storageTime"`
+	QoderCredits        *string   `gorm:"column:qoder_credits;type:text"`
 }
