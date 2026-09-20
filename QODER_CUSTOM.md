@@ -2,6 +2,8 @@
 
 `qoder-custom` adds a Qoder quota provider using CPA's authenticated `/v0/management/plugins/qoder/credits` endpoint. Provider tokens stay in CPA. Teams, dedicated/SOTA and shared credits remain separate, with explicit expiry and unknown-capacity handling. Empty refresh tasks are returned as arrays and tolerated by the frontend.
 
+Merged upstream stable baseline: `v1.15.5`. Build custom images with a distinguishable version, for example `v1.15.5-qoder.1`.
+
 ## Updating
 
 Keep `upstream` pointed at `Willxup/cpa-usage-keeper` and `origin` at this fork. Merge official stable tags into `qoder-custom`; installing an official image bypasses these custom changes.

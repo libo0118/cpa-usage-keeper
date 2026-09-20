@@ -22,6 +22,7 @@ backups/
 
 # frontend dependencies and build output
 web/node_modules/
+.npm-cache/
 web/dist/
 web/dist-ssr/
 
