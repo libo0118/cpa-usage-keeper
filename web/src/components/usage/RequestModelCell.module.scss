@@ -1,0 +1,13 @@
+.model {
+  display: block;
+  min-width: 0;
+  strong, small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  strong { font-size: 12px; font-weight: 650; }
+  small { margin-top: 2px; font-size: 11px; color: var(--text-tertiary); }
+  &[data-model-mismatch] small.reported { color: var(--warning-color); }
+}

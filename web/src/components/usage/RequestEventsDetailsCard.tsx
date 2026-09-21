@@ -47,6 +47,7 @@ import {
 import { RequestEventsColumnSettingsModal } from './RequestEventsColumnSettingsModal';
 import { RequestEventLogModal } from './RequestEventLogModal';
 import { RequestEventResultBadge } from './RequestEventResultBadge';
+import { RequestModelCell } from './RequestModelCell';
 
 export { splitRequestLogVirtualChunks } from './RequestEventLogModal';
 
@@ -854,8 +855,7 @@ export function RequestEventsDetailsCard({
         header: <th>{t('usage_stats.model_name')}</th>,
         renderCell: (row) => (
           <td className={`${styles.modelCell} ${styles.requestEventsStackedCell}`}>
-            <span className={styles.requestEventsStackedPrimary} title={row.model}>{row.model}</span>
-            <span className={styles.requestEventsStackedSecondary} title={row.modelAlias}>{row.modelAlias}</span>
+            <RequestModelCell event={row.event} />
           </td>
         ),
       },

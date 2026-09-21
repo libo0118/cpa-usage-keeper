@@ -791,34 +791,35 @@ func TestUsageEventRequestLogDownloadSanitizesAttachmentFilename(t *testing.T) {
 
 func TestUsageEventsExportCSVReturnsFilteredRowsWithoutPagination(t *testing.T) {
 	provider := &usageEventsStub{exportEvents: []servicedto.UsageEventRecord{{
-		ID:                  52,
-		Timestamp:           time.Date(2026, 4, 22, 11, 0, 0, 0, time.UTC),
-		APIGroupKey:         "sk-export123456",
-		Model:               "claude-sonnet",
-		ModelAlias:          "sonnet-export",
-		ReasoningEffort:     "medium",
-		ServiceTier:         "auto",
-		ResponseServiceTier: "default",
-		ClientIP:            usageEventStringPtr("192.0.2.10"),
-		XForwardedFor:       usageEventStringPtr("203.0.113.5, 198.51.100.8"),
-		UserAgent:           usageEventStringPtr("test-client/1.0"),
-		ExecutorType:        "responses",
-		Endpoint:            "POST /v1/responses",
-		AuthType:            "apikey",
-		Provider:            "Provider Fallback",
-		AuthIndex:           "authidx-export-main",
-		Failed:              true,
-		LatencyMS:           2000,
-		TTFTMS:              usageEventInt64Ptr(45),
-		InputTokens:         10,
-		OutputTokens:        61,
-		ReasoningTokens:     2,
-		CacheReadTokens:     3,
-		CacheCreationTokens: 4,
-		TotalTokens:         18,
-		CostUSD:             0.1234,
-		CostAvailable:       true,
-		PricingStyle:        "claude",
+		ID:                    52,
+		Timestamp:             time.Date(2026, 4, 22, 11, 0, 0, 0, time.UTC),
+		APIGroupKey:           "sk-export123456",
+		Model:                 "claude-sonnet",
+		ModelAlias:            "sonnet-export",
+		UpstreamResponseModel: "claude-sonnet-reported",
+		ReasoningEffort:       "medium",
+		ServiceTier:           "auto",
+		ResponseServiceTier:   "default",
+		ClientIP:              usageEventStringPtr("192.0.2.10"),
+		XForwardedFor:         usageEventStringPtr("203.0.113.5, 198.51.100.8"),
+		UserAgent:             usageEventStringPtr("test-client/1.0"),
+		ExecutorType:          "responses",
+		Endpoint:              "POST /v1/responses",
+		AuthType:              "apikey",
+		Provider:              "Provider Fallback",
+		AuthIndex:             "authidx-export-main",
+		Failed:                true,
+		LatencyMS:             2000,
+		TTFTMS:                usageEventInt64Ptr(45),
+		InputTokens:           10,
+		OutputTokens:          61,
+		ReasoningTokens:       2,
+		CacheReadTokens:       3,
+		CacheCreationTokens:   4,
+		TotalTokens:           18,
+		CostUSD:               0.1234,
+		CostAvailable:         true,
+		PricingStyle:          "claude",
 	}}}
 	router := NewRouter(nil, nil, provider, nil, AuthConfig{}, nil, "", OptionalProviders{
 		CPAAPIKeys: &authCPAAPIKeyStub{row: entities.CPAAPIKey{
@@ -873,7 +874,7 @@ func TestUsageEventsExportCSVReturnsFilteredRowsWithoutPagination(t *testing.T) 
 	if !contains(body, "speed_tps,client_ip,x_forwarded_for,user_agent,input_tokens") || !contains(body, ",30.5,192.0.2.10,\"203.0.113.5, 198.51.100.8\",test-client/1.0,10,") {
 		t.Fatalf("expected client metadata after speed in csv export, got %s", body)
 	}
-	if !contains(body, "service_tier,response_service_tier,executor_type") || !contains(body, ",auto,default,responses,") {
+	if !contains(body, "service_tier,response_service_tier,upstream_response_model,executor_type") || !contains(body, ",auto,default,claude-sonnet-reported,responses,") {
 		t.Fatalf("expected separate request and response service tiers in csv export, got %s", body)
 	}
 	if contains(body, "is_deleted") {

@@ -92,6 +92,7 @@ func TestOrderedMigrationsPreservesExecutionOrder(t *testing.T) {
 		"20260912_usage_event_session_fields",
 		"20260920_add_qoder_request_credits",
 		"20260920_add_workbuddy_request_credits",
+		"20260921_add_upstream_response_model",
 	}
 	assertStringSlicesEqual(t, want, got)
 }

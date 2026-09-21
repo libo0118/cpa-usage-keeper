@@ -25,6 +25,7 @@ import { useScrollBoundaryContainment } from '@/hooks/useScrollBoundaryContainme
 import type { UsageEvent } from '@/lib/types'
 import { calculateCacheReadRate, formatCompactTokenValue, formatDurationMs, formatUsd } from '@/utils/usage'
 import { RequestEventResultBadge } from '@/components/usage/RequestEventResultBadge'
+import { RequestModelCell } from '@/components/usage/RequestModelCell'
 import { qoderCreditsCost, workbuddyCreditsCost } from './qoderCredits'
 import styles from './CredentialRequestEventsList.module.scss'
 
@@ -432,7 +433,7 @@ const buildRow = (
     clientIP,
     xForwardedFor,
     userAgent,
-    canExpand: [requestTier, responseTier, executorType, clientIP, xForwardedFor, userAgent]
+    canExpand: Boolean(event.upstream_response_model?.trim()) || (modelAliasValue !== '' && modelAliasValue !== model) || [requestTier, responseTier, executorType, clientIP, xForwardedFor, userAgent]
       .some((value) => value !== '-'),
   }
 }
@@ -656,8 +657,7 @@ export function CredentialRequestEventsList({
             className={`${styles.stackedCell} ${styles.model}`.trim()}
             data-credential-request-model={row.id}
           >
-            {renderOverflowText('strong', row.model)}
-            {renderOverflowText('small', row.modelAlias)}
+            <RequestModelCell event={row.event} renderText={renderOverflowText} />
             {renderLabeledOverflowText(t('usage_stats.reasoning_effort'), row.reasoningEffort)}
           </td>
           <td className={styles.stackedCell}>
@@ -754,6 +754,10 @@ export function CredentialRequestEventsList({
                 <section className={styles.detailGroup} data-credential-request-detail-group="request">
                   <h4>{t('usage_stats.credentials_detail_request_context')}</h4>
                   <div className={styles.detailGrid}>
+                    <div className={styles.detailItem} data-credential-request-detail-item>
+                      <span>{t('usage_stats.model_forwarded')}</span>
+                      {renderOverflowText('strong', row.model)}
+                    </div>
                     <div className={styles.detailItem} data-credential-request-detail-item>
                       <span>{t('usage_stats.credentials_detail_request_tier')}</span>
                       {renderOverflowText('strong', row.requestTier)}

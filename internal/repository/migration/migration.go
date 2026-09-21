@@ -245,6 +245,7 @@ func orderedMigrations() []databaseMigration {
 		{version: migrationAddUsageEventSessionFields, run: addUsageEventSessionFieldsMigration},
 		{version: "20260920_add_qoder_request_credits", run: addQoderRequestCreditsMigration},
 		{version: "20260920_add_workbuddy_request_credits", run: addWorkBuddyRequestCreditsMigration},
+		{version: "20260921_add_upstream_response_model", run: addUpstreamResponseModelMigration},
 	}
 }
 

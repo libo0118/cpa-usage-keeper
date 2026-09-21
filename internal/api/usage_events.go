@@ -42,35 +42,36 @@ type usageEventFilterOptionsResponse struct {
 }
 
 type usageEventPayload struct {
-	QoderCredits        json.RawMessage        `json:"qoder_credits,omitempty"`
-	WorkBuddyCredits    json.RawMessage        `json:"workbuddy_credits,omitempty"`
-	ID                  string                 `json:"id,omitempty"`
-	Timestamp           string                 `json:"timestamp"`
-	APIKey              string                 `json:"api_key,omitempty"`
-	Model               string                 `json:"model"`
-	ModelAlias          string                 `json:"model_alias,omitempty"`
-	ReasoningEffort     string                 `json:"reasoning_effort,omitempty"`
-	ServiceTier         string                 `json:"service_tier,omitempty"`
-	ResponseServiceTier string                 `json:"response_service_tier,omitempty"`
-	ClientIP            *string                `json:"client_ip"`
-	XForwardedFor       *string                `json:"x_forwarded_for"`
-	UserAgent           *string                `json:"user_agent"`
-	ExecutorType        string                 `json:"executor_type,omitempty"`
-	Endpoint            string                 `json:"endpoint,omitempty"`
-	Source              string                 `json:"source"`
-	SourceRaw           string                 `json:"source_raw,omitempty"`
-	SourceType          string                 `json:"source_type,omitempty"`
-	AuthIndex           string                 `json:"auth_index,omitempty"`
-	RequestID           string                 `json:"request_id,omitempty"`
-	IsDelete            bool                   `json:"isDelete,omitempty"`
-	Failed              bool                   `json:"failed"`
-	LatencyMS           int64                  `json:"latency_ms"`
-	TTFTMS              *int64                 `json:"ttft_ms,omitempty"`
-	SpeedTPS            *float64               `json:"speed_tps,omitempty"`
-	Tokens              usageEventTokenPayload `json:"tokens"`
-	CostUSD             float64                `json:"cost_usd"`
-	CostAvailable       bool                   `json:"cost_available"`
-	PricingStyle        string                 `json:"pricing_style,omitempty"`
+	QoderCredits          json.RawMessage        `json:"qoder_credits,omitempty"`
+	WorkBuddyCredits      json.RawMessage        `json:"workbuddy_credits,omitempty"`
+	ID                    string                 `json:"id,omitempty"`
+	Timestamp             string                 `json:"timestamp"`
+	APIKey                string                 `json:"api_key,omitempty"`
+	Model                 string                 `json:"model"`
+	ModelAlias            string                 `json:"model_alias,omitempty"`
+	UpstreamResponseModel string                 `json:"upstream_response_model,omitempty"`
+	ReasoningEffort       string                 `json:"reasoning_effort,omitempty"`
+	ServiceTier           string                 `json:"service_tier,omitempty"`
+	ResponseServiceTier   string                 `json:"response_service_tier,omitempty"`
+	ClientIP              *string                `json:"client_ip"`
+	XForwardedFor         *string                `json:"x_forwarded_for"`
+	UserAgent             *string                `json:"user_agent"`
+	ExecutorType          string                 `json:"executor_type,omitempty"`
+	Endpoint              string                 `json:"endpoint,omitempty"`
+	Source                string                 `json:"source"`
+	SourceRaw             string                 `json:"source_raw,omitempty"`
+	SourceType            string                 `json:"source_type,omitempty"`
+	AuthIndex             string                 `json:"auth_index,omitempty"`
+	RequestID             string                 `json:"request_id,omitempty"`
+	IsDelete              bool                   `json:"isDelete,omitempty"`
+	Failed                bool                   `json:"failed"`
+	LatencyMS             int64                  `json:"latency_ms"`
+	TTFTMS                *int64                 `json:"ttft_ms,omitempty"`
+	SpeedTPS              *float64               `json:"speed_tps,omitempty"`
+	Tokens                usageEventTokenPayload `json:"tokens"`
+	CostUSD               float64                `json:"cost_usd"`
+	CostAvailable         bool                   `json:"cost_available"`
+	PricingStyle          string                 `json:"pricing_style,omitempty"`
 }
 
 type usageEventTokenPayload struct {
@@ -103,36 +104,37 @@ type usageEventRequestLogDownloadTokenPayload struct {
 }
 
 type usageEventExportPayload struct {
-	ID                  string   `json:"id"`
-	Timestamp           string   `json:"timestamp"`
-	APIKey              string   `json:"api_key"`
-	CPAAPIKeyID         string   `json:"cpa_api_key_id"`
-	Source              string   `json:"source"`
-	SourceType          string   `json:"source_type"`
-	AuthIndex           string   `json:"auth_index"`
-	IsIdentityDeleted   bool     `json:"is_identity_deleted"`
-	Model               string   `json:"model"`
-	ModelAlias          string   `json:"model_alias"`
-	ReasoningEffort     string   `json:"reasoning_effort"`
-	ServiceTier         string   `json:"service_tier"`
-	ResponseServiceTier string   `json:"response_service_tier"`
-	ClientIP            *string  `json:"client_ip"`
-	XForwardedFor       *string  `json:"x_forwarded_for"`
-	UserAgent           *string  `json:"user_agent"`
-	ExecutorType        string   `json:"executor_type"`
-	Result              string   `json:"result"`
-	Endpoint            string   `json:"endpoint"`
-	TTFTMS              *int64   `json:"ttft_ms"`
-	LatencyMS           int64    `json:"latency_ms"`
-	SpeedTPS            *float64 `json:"speed_tps"`
-	InputTokens         int64    `json:"input_tokens"`
-	OutputTokens        int64    `json:"output_tokens"`
-	ReasoningTokens     int64    `json:"reasoning_tokens"`
-	CacheReadTokens     int64    `json:"cache_read_tokens"`
-	CacheCreationTokens int64    `json:"cache_creation_tokens"`
-	CacheReadRate       *float64 `json:"cache_read_rate"`
-	TotalTokens         int64    `json:"total_tokens"`
-	CostUSD             float64  `json:"cost_usd"`
+	ID                    string   `json:"id"`
+	Timestamp             string   `json:"timestamp"`
+	APIKey                string   `json:"api_key"`
+	CPAAPIKeyID           string   `json:"cpa_api_key_id"`
+	Source                string   `json:"source"`
+	SourceType            string   `json:"source_type"`
+	AuthIndex             string   `json:"auth_index"`
+	IsIdentityDeleted     bool     `json:"is_identity_deleted"`
+	Model                 string   `json:"model"`
+	ModelAlias            string   `json:"model_alias"`
+	UpstreamResponseModel string   `json:"upstream_response_model,omitempty"`
+	ReasoningEffort       string   `json:"reasoning_effort"`
+	ServiceTier           string   `json:"service_tier"`
+	ResponseServiceTier   string   `json:"response_service_tier"`
+	ClientIP              *string  `json:"client_ip"`
+	XForwardedFor         *string  `json:"x_forwarded_for"`
+	UserAgent             *string  `json:"user_agent"`
+	ExecutorType          string   `json:"executor_type"`
+	Result                string   `json:"result"`
+	Endpoint              string   `json:"endpoint"`
+	TTFTMS                *int64   `json:"ttft_ms"`
+	LatencyMS             int64    `json:"latency_ms"`
+	SpeedTPS              *float64 `json:"speed_tps"`
+	InputTokens           int64    `json:"input_tokens"`
+	OutputTokens          int64    `json:"output_tokens"`
+	ReasoningTokens       int64    `json:"reasoning_tokens"`
+	CacheReadTokens       int64    `json:"cache_read_tokens"`
+	CacheCreationTokens   int64    `json:"cache_creation_tokens"`
+	CacheReadRate         *float64 `json:"cache_read_rate"`
+	TotalTokens           int64    `json:"total_tokens"`
+	CostUSD               float64  `json:"cost_usd"`
 }
 
 type usageEventStreamFunc func(func(servicedto.UsageEventRecord) error) error
@@ -428,33 +430,34 @@ func buildUsageEventsPayload(rows []servicedto.UsageEventRecord, resolver usageI
 			id = strconv.FormatInt(row.ID, 10)
 		}
 		payload = append(payload, usageEventPayload{
-			ID:                  id,
-			Timestamp:           timeutil.FormatStorageTime(row.Timestamp),
-			APIKey:              usageEventAPIKeyLabel(row.APIGroupKey, apiKeyInfos),
-			Model:               row.Model,
-			ModelAlias:          strings.TrimSpace(row.ModelAlias),
-			ReasoningEffort:     strings.TrimSpace(row.ReasoningEffort),
-			ServiceTier:         strings.TrimSpace(row.ServiceTier),
-			ResponseServiceTier: strings.TrimSpace(row.ResponseServiceTier),
-			ClientIP:            row.ClientIP,
-			XForwardedFor:       row.XForwardedFor,
-			UserAgent:           row.UserAgent,
-			ExecutorType:        strings.TrimSpace(row.ExecutorType),
-			Endpoint:            strings.TrimSpace(row.Endpoint),
-			Source:              source,
-			SourceType:          identity.Type,
-			AuthIndex:           row.AuthIndex,
-			RequestID:           strings.TrimSpace(row.RequestID),
-			IsDelete:            isDelete,
-			Failed:              row.Failed,
-			LatencyMS:           row.LatencyMS,
-			TTFTMS:              row.TTFTMS,
-			SpeedTPS:            usageEventSpeedTPS(row),
-			CostUSD:             row.CostUSD,
-			CostAvailable:       row.CostAvailable,
-			QoderCredits:        usageEventQoderCredits(row.QoderCredits),
-			WorkBuddyCredits:    usageEventQoderCredits(row.WorkBuddyCredits),
-			PricingStyle:        strings.TrimSpace(row.PricingStyle),
+			ID:                    id,
+			Timestamp:             timeutil.FormatStorageTime(row.Timestamp),
+			APIKey:                usageEventAPIKeyLabel(row.APIGroupKey, apiKeyInfos),
+			Model:                 row.Model,
+			ModelAlias:            strings.TrimSpace(row.ModelAlias),
+			ReasoningEffort:       strings.TrimSpace(row.ReasoningEffort),
+			ServiceTier:           strings.TrimSpace(row.ServiceTier),
+			ResponseServiceTier:   strings.TrimSpace(row.ResponseServiceTier),
+			UpstreamResponseModel: strings.TrimSpace(row.UpstreamResponseModel),
+			ClientIP:              row.ClientIP,
+			XForwardedFor:         row.XForwardedFor,
+			UserAgent:             row.UserAgent,
+			ExecutorType:          strings.TrimSpace(row.ExecutorType),
+			Endpoint:              strings.TrimSpace(row.Endpoint),
+			Source:                source,
+			SourceType:            identity.Type,
+			AuthIndex:             row.AuthIndex,
+			RequestID:             strings.TrimSpace(row.RequestID),
+			IsDelete:              isDelete,
+			Failed:                row.Failed,
+			LatencyMS:             row.LatencyMS,
+			TTFTMS:                row.TTFTMS,
+			SpeedTPS:              usageEventSpeedTPS(row),
+			CostUSD:               row.CostUSD,
+			CostAvailable:         row.CostAvailable,
+			QoderCredits:          usageEventQoderCredits(row.QoderCredits),
+			WorkBuddyCredits:      usageEventQoderCredits(row.WorkBuddyCredits),
+			PricingStyle:          strings.TrimSpace(row.PricingStyle),
 			Tokens: usageEventTokenPayload{
 				InputTokens:         row.InputTokens,
 				OutputTokens:        row.OutputTokens,
@@ -517,36 +520,37 @@ func buildUsageEventExportPayload(row servicedto.UsageEventRecord, resolver usag
 		result = "failed"
 	}
 	return usageEventExportPayload{
-		ID:                  id,
-		Timestamp:           timeutil.FormatStorageTime(row.Timestamp),
-		APIKey:              usageEventAPIKeyLabel(row.APIGroupKey, apiKeyInfos),
-		CPAAPIKeyID:         usageEventCPAAPIKeyID(row.APIGroupKey, apiKeyInfos),
-		Source:              source,
-		SourceType:          identity.Type,
-		AuthIndex:           strings.TrimSpace(row.AuthIndex),
-		IsIdentityDeleted:   isIdentityDeleted,
-		Model:               row.Model,
-		ModelAlias:          strings.TrimSpace(row.ModelAlias),
-		ReasoningEffort:     strings.TrimSpace(row.ReasoningEffort),
-		ServiceTier:         strings.TrimSpace(row.ServiceTier),
-		ResponseServiceTier: strings.TrimSpace(row.ResponseServiceTier),
-		ClientIP:            row.ClientIP,
-		XForwardedFor:       row.XForwardedFor,
-		UserAgent:           row.UserAgent,
-		ExecutorType:        strings.TrimSpace(row.ExecutorType),
-		Result:              result,
-		Endpoint:            strings.TrimSpace(row.Endpoint),
-		TTFTMS:              row.TTFTMS,
-		LatencyMS:           row.LatencyMS,
-		SpeedTPS:            usageEventSpeedTPS(row),
-		InputTokens:         row.InputTokens,
-		OutputTokens:        row.OutputTokens,
-		ReasoningTokens:     row.ReasoningTokens,
-		CacheReadTokens:     row.CacheReadTokens,
-		CacheCreationTokens: row.CacheCreationTokens,
-		CacheReadRate:       usageEventCacheReadRate(row),
-		TotalTokens:         row.TotalTokens,
-		CostUSD:             row.CostUSD,
+		ID:                    id,
+		Timestamp:             timeutil.FormatStorageTime(row.Timestamp),
+		APIKey:                usageEventAPIKeyLabel(row.APIGroupKey, apiKeyInfos),
+		CPAAPIKeyID:           usageEventCPAAPIKeyID(row.APIGroupKey, apiKeyInfos),
+		Source:                source,
+		SourceType:            identity.Type,
+		AuthIndex:             strings.TrimSpace(row.AuthIndex),
+		IsIdentityDeleted:     isIdentityDeleted,
+		Model:                 row.Model,
+		ModelAlias:            strings.TrimSpace(row.ModelAlias),
+		ReasoningEffort:       strings.TrimSpace(row.ReasoningEffort),
+		ServiceTier:           strings.TrimSpace(row.ServiceTier),
+		ResponseServiceTier:   strings.TrimSpace(row.ResponseServiceTier),
+		UpstreamResponseModel: strings.TrimSpace(row.UpstreamResponseModel),
+		ClientIP:              row.ClientIP,
+		XForwardedFor:         row.XForwardedFor,
+		UserAgent:             row.UserAgent,
+		ExecutorType:          strings.TrimSpace(row.ExecutorType),
+		Result:                result,
+		Endpoint:              strings.TrimSpace(row.Endpoint),
+		TTFTMS:                row.TTFTMS,
+		LatencyMS:             row.LatencyMS,
+		SpeedTPS:              usageEventSpeedTPS(row),
+		InputTokens:           row.InputTokens,
+		OutputTokens:          row.OutputTokens,
+		ReasoningTokens:       row.ReasoningTokens,
+		CacheReadTokens:       row.CacheReadTokens,
+		CacheCreationTokens:   row.CacheCreationTokens,
+		CacheReadRate:         usageEventCacheReadRate(row),
+		TotalTokens:           row.TotalTokens,
+		CostUSD:               row.CostUSD,
 	}
 }
 
@@ -581,6 +585,7 @@ var usageEventsExportCSVHeader = []string{
 	"reasoning_effort",
 	"service_tier",
 	"response_service_tier",
+	"upstream_response_model",
 	"executor_type",
 	"result",
 	"endpoint",
@@ -778,6 +783,7 @@ func usageEventExportCSVRecord(event usageEventExportPayload) []string {
 		event.ReasoningEffort,
 		event.ServiceTier,
 		event.ResponseServiceTier,
+		event.UpstreamResponseModel,
 		event.ExecutorType,
 		event.Result,
 		event.Endpoint,
