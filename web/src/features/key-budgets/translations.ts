@@ -1,6 +1,8 @@
 export const keyBudgetTranslations = {
   "en": {
     "title": "Key budgets",
+    "filter_key": "Filter by key",
+    "all_keys": "All keys ({{count}})",
     "read_only": "Read-only CPA policy and ledger report. Manage authorization and budgets in CPA.",
     "open_cpa": "Manage in CPA",
     "soft_cap": "Soft spending caps: actual upstream costs can exceed reservations. Calendar periods use UTC; Codex periods use observed quota windows.",
@@ -51,6 +53,8 @@ export const keyBudgetTranslations = {
   },
   "zh": {
     "title": "密钥预算",
+    "filter_key": "筛选密钥",
+    "all_keys": "全部密钥（{{count}}）",
     "read_only": "只读展示 CPA 策略和账本。请在 CPA 管理授权与预算。",
     "open_cpa": "前往 CPA 管理",
     "soft_cap": "预算为软上限：实际上游费用可能超过预留额。日历周期采用 UTC；Codex 周期采用已观测配额窗口。",
@@ -101,6 +105,8 @@ export const keyBudgetTranslations = {
   },
   "zh-TW": {
     "title": "金鑰預算",
+    "filter_key": "篩選金鑰",
+    "all_keys": "全部金鑰（{{count}}）",
     "read_only": "唯讀展示 CPA 策略與帳本。請在 CPA 管理授權與預算。",
     "open_cpa": "前往 CPA 管理",
     "soft_cap": "預算為軟上限：實際上游費用可能超過預留額。日曆週期採用 UTC；Codex 週期採用已觀測配額視窗。",

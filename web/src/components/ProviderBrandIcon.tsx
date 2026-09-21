@@ -6,6 +6,9 @@ import grokIcon from '@/assets/icons/grok.svg'
 import kimiIcon from '@/assets/icons/kimi.svg'
 import openaiIcon from '@/assets/icons/openai.svg'
 import vertexIcon from '@/assets/icons/vertex.svg'
+import qoderIcon from '@/assets/icons/qoder.svg'
+import workbuddyIcon from '@/assets/icons/workbuddy.svg'
+import opencodeIcon from '@/assets/icons/opencode.png'
 import styles from './ProviderBrandIcon.module.scss'
 
 export const PROVIDER_BRAND_ICON_KEYS = [
@@ -19,6 +22,7 @@ export const PROVIDER_BRAND_ICON_KEYS = [
   'xai',
   'qoder',
   'workbuddy',
+  'opencode-go',
 ] as const
 
 export type ProviderBrandIconKey = typeof PROVIDER_BRAND_ICON_KEYS[number]
@@ -44,11 +48,14 @@ const providerBrandIconKeyByType: Readonly<Record<string, ProviderBrandIconKey>>
   xai: 'xai',
   qoder: 'qoder',
   workbuddy: 'workbuddy',
+  'opencode-go': 'opencode-go',
 }
 
-// 品牌资源取自 Lobe Icons；统一复用其 Avatar 圆形容器、背景色与缩放比例。
+// Qoder: https://qoder.com/favIcon.svg; WorkBuddy: https://www.workbuddy.ai/ favicon.
+// OpenCode: https://opencode.ai/favicon-96x96-v3.png (linked by /go); others: Lobe Icons.
 const providerBrandIconUrlByKey: Readonly<Record<ProviderBrandIconKey, string>> = {
-  workbuddy: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Ctext x="2" y="19" font-size="20" fill="%23546bcc"%3EW%3C/text%3E%3C/svg%3E',
+  workbuddy: workbuddyIcon,
+  'opencode-go': opencodeIcon,
   antigravity: antigravityIcon,
   claude: claudeIcon,
   codex: codexIcon,
@@ -57,7 +64,7 @@ const providerBrandIconUrlByKey: Readonly<Record<ProviderBrandIconKey, string>> 
   openai: openaiIcon,
   vertex: vertexIcon,
   xai: grokIcon,
-  qoder: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"%3E%3Ctext x="4" y="19" font-size="20" fill="%23476d56"%3EQ%3C/text%3E%3C/svg%3E',
+  qoder: qoderIcon,
 }
 
 export function providerBrandIconKey(providerType: string | null | undefined): ProviderBrandIconKey | undefined {

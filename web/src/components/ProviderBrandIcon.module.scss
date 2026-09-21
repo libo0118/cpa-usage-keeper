@@ -19,7 +19,7 @@
 }
 
 .providerBrandIconAvatar .providerBrandIconAsset {
-  transform: scale(var(--provider-brand-icon-avatar-scale));
+  transform: scale(var(--provider-brand-icon-avatar-scale, 1));
 }
 
 .providerBrandIconAvatar[data-provider-brand-icon='antigravity'] {

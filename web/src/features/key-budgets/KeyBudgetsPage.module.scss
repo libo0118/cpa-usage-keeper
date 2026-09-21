@@ -1,14 +1,44 @@
-.hint { color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
-.sync { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-block: 20px; font-size: 13px; }
-.warning { color: var(--warning-color, #b7791f); overflow-wrap: anywhere; }
-.key { margin-top: 24px; }
-.key h4 { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 6px; overflow-wrap: anywhere; }
-.key code { font-size: 12px; font-weight: 400; overflow-wrap: anywhere; }
-.scroll { overflow-x: auto; border: 1px solid var(--border-color); border-radius: 12px; }
-.scroll table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.scroll th, .scroll td { padding: 14px 16px; text-align: start; border-bottom: 1px solid var(--border-color); vertical-align: top; }
-.scroll th { color: var(--text-secondary); white-space: nowrap; font-weight: 500; }
-.scroll td { min-width: 90px; }
-.scroll td:first-child { min-width: 180px; max-width: 320px; overflow-wrap: anywhere; }
-.scroll small { display: block; margin-top: 5px; }
+.page { min-width: 0; }
+.hint { margin: 0; color: var(--text-secondary); font-size: var(--keeper-card-subtitle-size); line-height: 1.6; }
+.toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.keyFilter { width: 300px; max-width: 100%; min-width: 0; }
+.syncStatus { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: var(--keeper-body-font-size); color: var(--text-secondary); }
+.sync { display: flex; flex-wrap: wrap; gap: 6px 24px; margin: 12px 0 20px; font-size: var(--keeper-card-subtitle-size); color: var(--text-secondary); }
+.warning { color: var(--warning-color); overflow-wrap: anywhere; font-size: var(--keeper-body-font-size); }
+.key { min-width: 0; margin-top: 20px; border-top: 1px solid var(--border-color); }
+.keyHeader { padding: 18px 0 14px; }
+.key h4 { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; margin: 0 0 6px; font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+.key code { font-size: 11px; font-weight: 400; color: var(--text-secondary); overflow-wrap: anywhere; }
+.scroll { overflow-x: auto; max-width: 100%; border: 1px solid var(--border-color); border-radius: var(--radius-md); }
+.scroll:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+.scroll table { width: 100%; border-collapse: collapse; font-size: var(--keeper-body-font-size); }
+.scroll th, .scroll td { padding: 14px 12px; text-align: start; border-bottom: 1px solid var(--border-color); vertical-align: middle; line-height: 1.5; }
+.scroll th { color: var(--text-secondary); background: var(--bg-secondary); white-space: nowrap; font-size: 11px; font-weight: 600; }
+.scroll td { min-width: 82px; font-variant-numeric: tabular-nums; }
+.scroll td:first-child { min-width: 220px; max-width: 320px; overflow-wrap: anywhere; }
+.scroll small { display: block; margin-top: 5px; color: var(--text-secondary); font-size: 11px; }
+.scroll small.warning { color: var(--warning-color); }
 .scroll tbody tr:last-child td { border-bottom: 0; }
+.scroll tbody tr:hover { background: var(--bg-hover); }
+.resourceIdentity { display: flex; align-items: center; gap: 12px; }
+.resourceText { min-width: 0; }
+.resourceText strong { display: block; font-weight: 700; }
+.amount { font-weight: 700; color: var(--text-primary); }
+.loading { min-height: 160px; display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--text-secondary); }
+
+@media (max-width: 640px) {
+  .toolbar { align-items: stretch; }
+  .keyFilter { width: 100%; }
+  .sync { flex-direction: column; }
+  .scroll { overflow: visible; border: 0; border-radius: 0; }
+  .scroll table, .scroll tbody { display: block; }
+  .scroll thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .scroll tr { display: block; padding: 14px 0; border-top: 1px solid var(--border-color); }
+  .scroll th, .scroll td { border: 0; }
+  .scroll td { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 4px 12px; min-width: 0; padding: 6px 0; overflow-wrap: anywhere; }
+  .scroll td::before { content: attr(data-label); color: var(--text-secondary); font-weight: 400; }
+  .scroll td > small { grid-column: 2; }
+  .scroll td.resourceCell { display: block; min-width: 0; max-width: none; padding: 0 0 12px; }
+  .scroll td.resourceCell::before { content: none; }
+  .scroll td > span { justify-self: start; }
+}
