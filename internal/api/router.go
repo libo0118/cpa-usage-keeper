@@ -51,6 +51,7 @@ type StatusRouteConfig struct {
 }
 
 type OptionalProviders struct {
+	KeyPolicies      KeyPolicyProvider
 	UsageIdentity    service.UsageIdentityProvider
 	ErrorEvents      service.ErrorEventProvider
 	Quota            QuotaProvider
@@ -143,6 +144,11 @@ func NewRouter(
 	registerCPAAPIKeyRoutes(adminProtected, cpaAPIKeyProvider)
 	registerPricingRoutes(adminProtected, pricingProvider)
 	registerQuotaRoutes(adminProtected, quotaProvider)
+	var keyPolicies KeyPolicyProvider
+	if len(optionalProviders) > 0 {
+		keyPolicies = optionalProviders[0].KeyPolicies
+	}
+	registerKeyPolicyRoutes(adminProtected, keyPolicies)
 	if rankingProvider != nil {
 		rankinghttpapi.RegisterRoutes(adminProtected, rankingProvider)
 	}

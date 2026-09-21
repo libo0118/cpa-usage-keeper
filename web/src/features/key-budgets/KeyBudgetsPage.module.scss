@@ -1,0 +1,14 @@
+.hint { color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
+.sync { display: flex; flex-wrap: wrap; gap: 12px 24px; margin-block: 20px; font-size: 13px; }
+.warning { color: var(--warning-color, #b7791f); overflow-wrap: anywhere; }
+.key { margin-top: 24px; }
+.key h4 { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 6px; overflow-wrap: anywhere; }
+.key code { font-size: 12px; font-weight: 400; overflow-wrap: anywhere; }
+.scroll { overflow-x: auto; border: 1px solid var(--border-color); border-radius: 12px; }
+.scroll table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.scroll th, .scroll td { padding: 14px 16px; text-align: start; border-bottom: 1px solid var(--border-color); vertical-align: top; }
+.scroll th { color: var(--text-secondary); white-space: nowrap; font-weight: 500; }
+.scroll td { min-width: 90px; }
+.scroll td:first-child { min-width: 180px; max-width: 320px; overflow-wrap: anywhere; }
+.scroll small { display: block; margin-top: 5px; }
+.scroll tbody tr:last-child td { border-bottom: 0; }

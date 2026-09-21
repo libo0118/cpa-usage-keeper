@@ -1,5 +1,6 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { keyBudgetTranslations } from '@/features/key-budgets/translations';
 
 const LANGUAGE_STORAGE_KEY = 'cpa-usage-keeper-language';
 const DEFAULT_LANGUAGE = 'en';
@@ -2781,6 +2782,10 @@ if (!i18n.isInitialized) {
     fallbackLng: DEFAULT_LANGUAGE,
     interpolation: { escapeValue: false }
   });
+}
+
+for (const language of SUPPORTED_LANGUAGES) {
+  i18n.addResourceBundle(language, 'translation', { key_budgets: keyBudgetTranslations[language] }, true, true);
 }
 
 export const persistLanguage = (language: SupportedLanguage) => {

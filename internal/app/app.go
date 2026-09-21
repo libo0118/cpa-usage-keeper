@@ -60,7 +60,8 @@ type App struct {
 	RedisIngest  Runner
 	RedisProcess Runner
 	// CPAErrors 是完全独立的 best-effort errors 订阅；停止或失败不影响 Usage 与 HTTP。
-	CPAErrors Runner
+	CPAErrors   Runner
+	KeyPolicies Runner
 	// UsageAggregation 是唯一串行调度三类派生聚合事务的后台 runner。
 	UsageAggregation  Runner
 	Ranking           Runner
@@ -199,6 +200,7 @@ func NewWithConfig(cfg config.Config) (*App, error) {
 	pricingCatalog := pricing.NewCatalog(pricingSnapshot)
 
 	cpaClient := cpa.NewClient(cfg.CPABaseURL, cfg.CPAManagementKey, cfg.RequestTimeout, cfg.TLSSkipVerify)
+	keyPolicyService := service.NewKeyPolicyService(db, cpaClient)
 	quotaService := quota.NewServiceWithOptions(db, cpaClient, quota.ServiceOptions{
 		RefreshWorkerLimit:            cfg.QuotaRefreshWorkerLimit,
 		QuotaUpstreamResponsesEnabled: cfg.QuotaUpstreamResponsesEnabled,
@@ -339,6 +341,7 @@ func NewWithConfig(cfg config.Config) (*App, error) {
 		RedisIngest:       redisIngestRunner,
 		RedisProcess:      redisProcessRunner,
 		CPAErrors:         redisErrorIngestRunner,
+		KeyPolicies:       keyPolicyService,
 		UsageAggregation:  usageAggregationRunner,
 		Ranking:           rankingRunner,
 		LocalRanking:      localRankingRunner,
@@ -359,6 +362,7 @@ func NewWithConfig(cfg config.Config) (*App, error) {
 			authHandler,
 			cfg.AppBasePath,
 			api.OptionalProviders{
+				KeyPolicies:   keyPolicyService,
 				UsageIdentity: usageIdentityService,
 				ErrorEvents:   errorEventService,
 				Quota:         quotaService,
@@ -458,6 +462,9 @@ func (a *App) Run() error {
 
 	ctx := a.startBackgroundContext()
 	defer a.stopBackgroundTasks()
+	if a.KeyPolicies != nil {
+		a.startBackgroundTask(func() { _ = a.KeyPolicies.Run(ctx) })
+	}
 	if a.RedisIngest != nil {
 		a.startBackgroundTask(func() {
 			if err := a.RedisIngest.Run(ctx); err != nil {
