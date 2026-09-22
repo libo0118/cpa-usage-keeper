@@ -464,6 +464,11 @@ func (c *Client) DeleteAuthFiles(ctx context.Context, names []string) error {
 	return err
 }
 
+func (c *Client) FetchCursorQuota(ctx context.Context, authIndex string) ([]byte, error) {
+	_, body, err := c.doManagementJSONRequest(ctx, "/v0/management/plugins/cursor/quota?auth_index="+url.QueryEscape(authIndex), nil, "cursor quota")
+	return body, err
+}
+
 func (c *Client) FetchQoderCredits(ctx context.Context, authIndex string) ([]byte, error) {
 	_, body, err := c.doManagementJSONRequest(ctx, "/v0/management/plugins/qoder/credits?auth_index="+url.QueryEscape(authIndex), nil, "qoder credits")
 	return body, err

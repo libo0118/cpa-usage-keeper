@@ -10,6 +10,7 @@ func NewDefaultProviderRegistry(caller ManagementClient, configs ProviderConfigs
 	return NewProviderRegistry(map[string]ProviderHandler{
 		"antigravity": NewAntigravityProvider(caller, configs.Antigravity, configs.AntigravitySubscriptions),
 		"codex":       NewCodexProvider(caller, configs.Codex),
+		"cursor":      cursorQuotaProvider{caller: caller},
 		"gemini-cli":  NewGeminiCLIProvider(caller, configs.GeminiCLI, configs.GeminiCLICodeAssist),
 		"claude":      NewClaudeProvider(caller, configs.ClaudeUsage, configs.ClaudeProfile),
 		"kimi":        NewKimiProvider(caller, configs.Kimi),

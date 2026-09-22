@@ -4,6 +4,20 @@ import { buildCredentialProviderFilterOptions, credentialProviderFilterTypes } f
 
 // 当前测试组只验证品牌筛选到后端原始 type 的稳定映射。
 describe('credentialProviderFilters', () => {
+  it('keeps Cursor, Qoder and WorkBuddy auth filters without losing unknown identities', () => {
+    const options = buildCredentialProviderFilterOptions('auth-files', [
+      { type: 'cursor', count: 2 },
+      { type: 'qoder', count: 1 },
+      { type: 'workbuddy', count: 1 },
+      { type: 'future-provider', count: 3 },
+    ])
+    expect(options.map(({ key, count }) => [key, count])).toEqual([
+      ['all', 7], ['cursor', 2], ['workbuddy', 1], ['qoder', 1],
+    ])
+    expect(credentialProviderFilterTypes('auth-files', 'cursor')).toEqual(['cursor'])
+    expect(credentialProviderFilterTypes('ai-provider', 'cursor')).toEqual([])
+  })
+
   // Auth Files 为 CPA 内置类型和仍可定位 identity 的 Gemini CLI 兼容行生成品牌按钮。
   it('keeps CPA built-in Auth Files filters and Gemini CLI compatibility', () => {
     // counts 同时包含内置、插件来源、未知和 AI Provider 专属 type。

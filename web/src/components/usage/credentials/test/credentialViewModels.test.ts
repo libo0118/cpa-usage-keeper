@@ -345,6 +345,19 @@ describe('credentialViewModels', () => {
     ])
   })
 
+  it('keeps Cursor money visible without inventing an unknown percentage', () => {
+    const quotas = new Map<string, UsageQuotaCheckResponse>([
+      ['cursor-auth', quotaResponse('cursor-auth', [
+        { key: 'cursor.plan', label: 'Plan', scope: 'cursor', metric: 'usd_cents', used: 1234 },
+        { key: 'cursor.credit_grants', label: 'Credit grants', scope: 'cursor', metric: 'usd_cents', remaining: 0 },
+      ])],
+    ])
+    const rows = buildAuthFileCredentialRows([identity({ identity: 'cursor-auth', type: 'cursor', provider: 'cursor' })], quotas)
+    expect(rows[0].displayQuotas).toHaveLength(2)
+    expect(rows[0].displayQuotas[0]).toMatchObject({ barPercent: null, billingUsage: { used: '$12.34', limit: undefined, remaining: undefined } })
+    expect(rows[0].displayQuotas[1]).toMatchObject({ barPercent: null, billingUsage: { remaining: '$0.00' } })
+  })
+
   it('formats xai billing quota cents as dollar spend without token window usage', () => {
     const quotas = new Map<string, UsageQuotaCheckResponse>([
       ['xai-auth', quotaResponse('xai-auth', [

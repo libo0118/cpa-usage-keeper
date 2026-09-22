@@ -1995,16 +1995,17 @@ function QuotaBar({ quota, quotaUsageMode, showGroupMetadata = true, tooltipAlig
         <span className={styles.credentialQuotaLabelGroup}>
           <span>{quota.label}</span>
         </span>
-        {(resetDuration || percentLabel) && (
+        {(resetDuration || percentLabel || billingUsage?.remaining) && (
           <span className={styles.credentialQuotaValueGroup}>
             {resetDuration && <span className={styles.credentialQuotaResetDuration}>{resetDuration}</span>}
+            {billingUsage?.remaining && <strong>{t('usage_stats.qoder_remaining', { defaultValue: '剩余' })} {billingUsage.remaining}</strong>}
             {percentLabel && <strong>{percentLabel}</strong>}
           </span>
         )}
       </div>
-      <div className={styles.credentialQuotaTrack}>
+      {quota.barPercent !== null && <div className={styles.credentialQuotaTrack}>
         <span className={`${styles.credentialQuotaFill} ${credentialToneClassName('credentialQuotaFill', quota.status)}`.trim()} style={{ width }} />
-      </div>
+      </div>}
       <div className={styles.credentialQuotaMeta}>
         {showGroupMetadata && quota.scope === 'quota_group' && quota.groupLabel && (
           <QuotaGroupLabel label={quota.groupLabel} description={quota.groupDescription} />

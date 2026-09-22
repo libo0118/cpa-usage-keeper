@@ -400,6 +400,21 @@ describe('AuthFileCredentialsSection quota usage mode rendering', () => {
     expect(estimatedHtml).toContain('$10.00')
   })
 
+  it('preserves Cursor quota errors and renders available quota data', () => {
+    const cursorRow = { ...row, identity: { ...row.identity, type: 'cursor' } }
+    const unavailable = renderToStaticMarkup(createElement(AuthFileQuotaPanel, {
+      row: { ...cursorRow, displayQuotas: [], quotaError: 'unsupported' }, quotaUsageMode: 'current',
+    }))
+    expect(unavailable).not.toContain('usage_stats.credentials_plugin_quota_unavailable')
+    expect(unavailable).not.toContain('%')
+    expect(unavailable).toContain('unsupported')
+    const available = renderToStaticMarkup(createElement(AuthFileQuotaPanel, {
+      row: cursorRow, quotaUsageMode: 'current',
+    }))
+    expect(available).not.toContain('credentials_plugin_quota_unavailable')
+    expect(available).toContain('75%')
+  })
+
   it('falls back to current quota usage when estimated usage is unavailable', () => {
     const currentOnlyRow = {
       ...row,

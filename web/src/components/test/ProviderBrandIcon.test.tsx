@@ -17,6 +17,13 @@ const lobeProviderIconAssets = [
 ] as const
 
 describe('ProviderBrandIcon', () => {
+  it('recognizes Cursor and references the plugin logo without fetching it', () => {
+    expect(providerBrandIconKey(' Cursor ')).toBe('cursor')
+    const html = renderToStaticMarkup(<ProviderBrandIcon providerType="cursor" size={30} />)
+    expect(html).toContain('data-provider-brand-icon="cursor"')
+    expect(html).toContain('https://ptht05hbb1ssoooe.public.blob.vercel-storage.com/assets/brand/brand-logo-5.svg')
+  })
+
   it('normalizes CPA identity types and supported aliases into the shared brand set', () => {
     expect([
       'antigravity',

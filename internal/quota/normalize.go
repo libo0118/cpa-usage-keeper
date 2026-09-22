@@ -23,6 +23,8 @@ const (
 func NormalizeQuotaRows(output ProviderOutput) []QuotaRow {
 	// 不在 provider 层强行统一原始结构，只在出口处转换为前端展示需要的 quota rows。
 	switch result := output.Result.(type) {
+	case cursorQuotaResult:
+		return result.Rows
 	case workbuddyCreditsAccount:
 		return normalizeWorkBuddyQuotaRows(result)
 	case qoderCreditsAccount:

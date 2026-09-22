@@ -19,6 +19,7 @@ interface KnownCredentialProviderFilter {
 }
 
 const AUTH_FILE_PROVIDER_FILTERS: KnownCredentialProviderFilter[] = [
+  { key: 'cursor', labelKey: 'Cursor', types: ['cursor'] },
   { key: 'workbuddy', labelKey: 'WorkBuddy', types: ['workbuddy'] },
   { key: 'qoder', labelKey: 'Qoder', types: ['qoder'] },
   { key: 'antigravity', labelKey: 'usage_stats.credentials_filter_antigravity', types: ['antigravity'] },

@@ -445,7 +445,7 @@ function quotaUsedPercent(percentDisplay: { percent: number | null; kind: Displa
 }
 
 function isDisplayableQuota(quota: DisplayQuota | undefined): quota is DisplayQuota {
-  return quota !== undefined && (quota.barPercent !== null || (quota.credits === true && quota.remaining !== undefined))
+  return quota !== undefined && (quota.barPercent !== null || quota.billingUsage !== undefined || (quota.credits === true && quota.remaining !== undefined))
 }
 
 function credentialDisplayName(identity: UsageIdentity): string {
