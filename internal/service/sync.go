@@ -794,6 +794,9 @@ func (s *SyncService) aggregateUsageEventStatsFallback(ctx context.Context, writ
 // persistRedisUsageEvents 写入 Redis inbox 解码出的 usage_events。
 func (s *SyncService) persistRedisUsageEvents(db *gorm.DB, events []entities.UsageEvent) (*servicedto.SyncResult, error) {
 	logrus.WithField("event_count", len(events)).Debug("usage events insert started")
+	if err := resolveMissingUsageAuthTypes(db, events); err != nil {
+		return &servicedto.SyncResult{Status: "failed"}, err
+	}
 	// InsertUsageEvents 当前不再按 request_id/event_key 去重，Redis 队列中每条消息都入库为独立事件。
 	inserted, deduped, err := repository.InsertUsageEvents(db, events)
 	if err != nil {
