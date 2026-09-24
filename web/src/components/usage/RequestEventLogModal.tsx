@@ -19,6 +19,14 @@ const REQUEST_LOG_GRAPHEME_SEGMENTER = typeof Intl !== 'undefined' && typeof Int
   : null
 
 const REQUEST_LOG_SECTION_TITLE_KEYS: Record<string, string> = {
+  'CAPTURE UNAVAILABLE': 'usage_stats.request_events_log_section_capture_unavailable',
+  'REQUEST DIAGNOSTICS': 'usage_stats.request_events_log_section_diagnostics',
+  'REQUEST PARAMETERS': 'usage_stats.request_events_log_section_parameters',
+  'REQUEST HEADERS': 'usage_stats.request_events_log_section_request_headers',
+  'RESPONSE HEADERS': 'usage_stats.request_events_log_section_response_headers',
+  'UPSTREAM REQUEST': 'usage_stats.request_events_log_section_upstream_request',
+  'UPSTREAM RESPONSE': 'usage_stats.request_events_log_section_upstream_response',
+  PRIVACY: 'usage_stats.request_events_log_section_privacy',
   'REQUEST INFO': 'usage_stats.request_events_log_section_request_info',
   HEADERS: 'usage_stats.request_events_log_section_headers',
   'API REQUEST': 'usage_stats.request_events_log_section_api_request',

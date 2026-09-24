@@ -52,6 +52,7 @@ type requestLogProviderStub struct {
 	response         service.RequestLogResponse
 	err              error
 	eventID          int64
+	requestID        string
 	calls            int
 	downloadResponse service.RequestLogDownload
 	downloadErr      error
@@ -68,6 +69,38 @@ func (s *requestLogProviderStub) GetUsageEventRequestLog(_ context.Context, even
 	s.eventID = eventID
 	s.calls++
 	return s.response, s.err
+}
+
+func (s *requestLogProviderStub) GetRequestDiagnostic(_ context.Context, requestID string) (service.RequestLogResponse, error) {
+	s.requestID = requestID
+	s.calls++
+	return s.response, s.err
+}
+
+func TestRequestDiagnosticLookupValidatesIDAndAccess(t *testing.T) {
+	for _, test := range []struct {
+		enabled bool
+		id      string
+		status  int
+	}{
+		{true, "dd5e5a0f", http.StatusOK}, {false, "dd5e5a0f", http.StatusForbidden}, {true, "bad%24id", http.StatusBadRequest},
+	} {
+		provider := &requestLogProviderStub{response: service.RequestLogResponse{RequestID: "dd5e5a0f", Available: true, Previewable: true}}
+		router := NewRouter(nil, nil, &usageEventsStub{}, nil, AuthConfig{}, nil, "", OptionalProviders{RequestLogs: provider, Status: StatusRouteConfig{CPARequestLogAccessEnabled: test.enabled}})
+		response := httptest.NewRecorder()
+		router.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/api/v1/usage/request-diagnostics/"+test.id, nil))
+		if response.Code != test.status {
+			t.Fatalf("id=%s status=%d body=%s", test.id, response.Code, response.Body.String())
+		}
+		if test.status == http.StatusOK {
+			assertNoStoreHeaders(t, response)
+			if provider.requestID != test.id || provider.calls != 1 {
+				t.Fatal("direct request ID lookup was not used")
+			}
+		} else if provider.calls != 0 {
+			t.Fatal("invalid/disabled request reached provider")
+		}
+	}
 }
 
 func (s *requestLogProviderStub) DownloadUsageEventRequestLog(_ context.Context, eventID int64) (service.RequestLogDownload, error) {

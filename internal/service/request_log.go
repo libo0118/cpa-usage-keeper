@@ -29,8 +29,23 @@ type RequestLogClient interface {
 }
 
 type RequestLogProvider interface {
+	GetRequestDiagnostic(ctx context.Context, requestID string) (RequestLogResponse, error)
 	GetUsageEventRequestLog(ctx context.Context, eventID int64) (RequestLogResponse, error)
 	DownloadUsageEventRequestLog(ctx context.Context, eventID int64) (RequestLogDownload, error)
+}
+
+// GetRequestDiagnostic also works for interrupted requests without a usage row.
+func (s *requestLogService) GetRequestDiagnostic(ctx context.Context, requestID string) (RequestLogResponse, error) {
+	if s == nil || s.client == nil {
+		return RequestLogResponse{}, fmt.Errorf("request log client is not configured")
+	}
+	inflight, leader := s.beginFetch(requestID)
+	if leader {
+		go s.fetchRequestLog(requestID, inflight)
+	}
+	response, err := s.waitForRequestLogFetch(ctx, 0, requestID, inflight)
+	response.Downloadable = false
+	return response, err
 }
 
 type RequestLogResponse struct {
@@ -93,10 +108,11 @@ func (s *requestLogService) GetUsageEventRequestLog(ctx context.Context, eventID
 	if s.client == nil {
 		return RequestLogResponse{}, fmt.Errorf("request log client is not configured")
 	}
-	requestID, err := repository.FindUsageEventRequestIDByID(s.db.WithContext(ctx), eventID)
+	event, err := repository.FindUsageEventDiagnosticByID(s.db.WithContext(ctx), eventID)
 	if err != nil {
 		return RequestLogResponse{}, err
 	}
+	requestID := strings.TrimSpace(event.RequestID)
 	if requestID == "" {
 		return RequestLogResponse{EventID: eventID, Available: false}, ErrRequestLogMissingID
 	}
@@ -105,7 +121,11 @@ func (s *requestLogService) GetUsageEventRequestLog(ctx context.Context, eventID
 	if leader {
 		go s.fetchRequestLog(requestID, inflight)
 	}
-	return s.waitForRequestLogFetch(ctx, eventID, requestID, inflight)
+	response, err := s.waitForRequestLogFetch(ctx, eventID, requestID, inflight)
+	if errors.Is(err, ErrRequestLogUnavailable) {
+		return missingRequestDiagnostic(event), nil
+	}
+	return response, err
 }
 
 func (s *requestLogService) fetchRequestLog(requestID string, inflight *requestLogInflight) {
@@ -124,27 +144,13 @@ func (s *requestLogService) fetchRequestLog(requestID string, inflight *requestL
 		s.finishFetch(requestID, inflight, RequestLogResponse{}, err)
 		return
 	}
-	if result.BodyTruncated || len(result.Body) > requestLogMaxBytes {
-		response := RequestLogResponse{
-			RequestID:    requestID,
-			Filename:     strings.TrimSpace(result.Filename),
-			Available:    true,
-			Previewable:  false,
-			TooLarge:     true,
-			Downloadable: true,
-		}
-		s.finishFetch(requestID, inflight, response, nil)
-		return
-	}
-
-	raw := string(result.Body)
 	response := RequestLogResponse{
 		RequestID:    requestID,
-		Filename:     strings.TrimSpace(result.Filename),
+		Filename:     "request-diagnostic-" + requestID + ".log",
 		Available:    true,
 		Previewable:  true,
 		Downloadable: true,
-		Sections:     ParseRequestLogSections(raw),
+		Sections:     diagnosticSections(result.Filename, result.Body, result.BodyTruncated || len(result.Body) > requestLogMaxBytes),
 	}
 	s.finishFetch(requestID, inflight, response, nil)
 }
@@ -165,39 +171,21 @@ func (s *requestLogService) waitForRequestLogFetch(ctx context.Context, eventID 
 }
 
 func (s *requestLogService) DownloadUsageEventRequestLog(ctx context.Context, eventID int64) (RequestLogDownload, error) {
-	if s == nil {
-		return RequestLogDownload{}, fmt.Errorf("request log service is nil")
-	}
-	if s.db == nil {
-		return RequestLogDownload{}, fmt.Errorf("database is nil")
-	}
-	if s.client == nil {
-		return RequestLogDownload{}, fmt.Errorf("request log client is not configured")
-	}
-	requestID, err := repository.FindUsageEventRequestIDByID(s.db.WithContext(ctx), eventID)
+	result, err := s.GetUsageEventRequestLog(ctx, eventID)
 	if err != nil {
 		return RequestLogDownload{}, err
 	}
-	if requestID == "" {
-		return RequestLogDownload{EventID: eventID, Downloadable: false}, ErrRequestLogMissingID
-	}
-	result, err := s.client.OpenRequestLogByID(ctx, requestID)
-	if err != nil {
-		if result != nil && result.StatusCode == http.StatusNotFound {
-			return RequestLogDownload{EventID: eventID, RequestID: requestID, Downloadable: false}, ErrRequestLogUnavailable
-		}
-		return RequestLogDownload{}, err
-	}
-	if result == nil {
-		return RequestLogDownload{}, fmt.Errorf("request log result is nil")
+	var content strings.Builder
+	for _, section := range result.Sections {
+		fmt.Fprintf(&content, "=== %s ===\n%s\n\n", section.Title, section.Content)
 	}
 	return RequestLogDownload{
 		EventID:       eventID,
-		RequestID:     requestID,
-		Filename:      strings.TrimSpace(result.Filename),
-		ContentType:   strings.TrimSpace(result.ContentType),
-		ContentLength: result.ContentLength,
-		Body:          result.Body,
+		RequestID:     result.RequestID,
+		Filename:      result.Filename,
+		ContentType:   "text/plain; charset=utf-8",
+		ContentLength: int64(content.Len()),
+		Body:          io.NopCloser(strings.NewReader(content.String())),
 		Downloadable:  true,
 	}, nil
 }

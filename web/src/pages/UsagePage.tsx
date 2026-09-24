@@ -1,4 +1,6 @@
 import { UsageComparisonCharts } from '@/components/usage/UsageComparisonCharts';
+import { fetchRequestDiagnostic } from '@/lib/api';
+import { Input } from '@/components/ui/Input';
 import { useState, useMemo, useCallback, useEffect, useRef, type MouseEvent as ReactMouseEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ApiError, appPath, createUsageEventRequestLogDownloadURL, exportUsageEvents, fetchAnalysis, fetchAnalysisLatency, fetchAuthSessions, fetchCpaApiKeyOptions, fetchCpaApiKeySettings, fetchStatus, fetchUpdateCheck, fetchUsageEventModelFilterOptions, fetchUsageEventRequestLog, fetchUsageEventSourceFilterOptions, fetchUsageEvents, fetchUsageIdentity, fetchVersion, isUsageRangeBoundsConflict, logout, revokeAuthSession, updateAuthSessionAlias, updateCpaApiKeyAlias, type UsageEventsExportFormat } from '@/lib/api';
@@ -946,6 +948,7 @@ export function UsagePage({ onAuthRequired }: { onAuthRequired?: () => void }) {
   const credentialDetailRequestRef = useRef<{ id: string; controller: AbortController } | null>(null);
   const [requestLogResponse, setRequestLogResponse] = useState<UsageEventRequestLogResponse | null>(null);
   const [requestLogError, setRequestLogError] = useState('');
+  const [diagnosticRequestId, setDiagnosticRequestId] = useState('');
   const [requestLogLoadingEventId, setRequestLogLoadingEventId] = useState<string | null>(null);
   const [requestLogDownloading, setRequestLogDownloading] = useState(false);
   const eventsLoadMoreRequestControllerRef = useRef<AbortController | null>(null);
@@ -1608,9 +1611,10 @@ export function UsagePage({ onAuthRequired }: { onAuthRequired?: () => void }) {
     }
   }, [apiKeyFilterReady, eventsModelFilter, eventsResultFilter, eventsSourceFilter, onAuthRequired, recoverRangeBoundsConflict, requestApiKeyId, showTopNotice, t, usageRangeQuery]);
 
-  const handleRequestLogOpen = useCallback(async (event: UsageEvent) => {
+  const handleRequestLogOpen = useCallback(async (event: UsageEvent | string) => {
     if (!requestLogAccessEnabled) return;
-    const eventId = String(event.id ?? '').trim();
+    const directRequestId = typeof event === 'string' ? event.trim() : '';
+    const eventId = typeof event === 'string' ? directRequestId : String(event.id ?? '').trim();
     if (!eventId) {
       setRequestLogResponse(null);
       setRequestLogError(t('usage_stats.request_events_log_missing_event'));
@@ -1623,7 +1627,9 @@ export function UsagePage({ onAuthRequired }: { onAuthRequired?: () => void }) {
     setRequestLogResponse(null);
     setRequestLogError('');
     try {
-      const response = await fetchUsageEventRequestLog(eventId, controller.signal);
+      const response = directRequestId
+        ? await fetchRequestDiagnostic(directRequestId, controller.signal)
+        : await fetchUsageEventRequestLog(eventId, controller.signal);
       if (requestLogControllerRef.current !== controller) return;
       setRequestLogResponse(response);
     } catch (error) {
@@ -2317,6 +2323,17 @@ export function UsagePage({ onAuthRequired }: { onAuthRequired?: () => void }) {
             {activeTab === 'events' && (
               <>
                 {eventsError && <div className={styles.errorBox}>{eventsError}</div>}
+                {requestLogAccessEnabled && (
+                  <form className={styles.requestEventsToolbar} onSubmit={(event) => {
+                    event.preventDefault();
+                    void handleRequestLogOpen(diagnosticRequestId);
+                  }}>
+                    <Input label="Request ID" value={diagnosticRequestId} onChange={(event) => setDiagnosticRequestId(event.target.value)} maxLength={128} pattern="[A-Za-z0-9_-]+" autoComplete="off" required />
+                    <Button type="submit" variant="secondary" size="sm" disabled={!diagnosticRequestId.trim()} loading={Boolean(requestLogLoadingEventId)}>
+                      {t('usage_stats.request_events_diagnostic_lookup')}
+                    </Button>
+                  </form>
+                )}
                 <RequestEventsDetailsCard
                   events={eventsData}
                   loading={eventsLoading}

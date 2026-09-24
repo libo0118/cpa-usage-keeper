@@ -133,6 +133,33 @@ describe('RequestEventsDetailsCard request log virtualization', () => {
     }
   });
 
+  it('shows incomplete HTTP 200 diagnostics and offers only the redacted download', async () => {
+    const onDownload = vi.fn();
+    await act(async () => root.render(
+      <RequestEventsDetailsCard
+        {...baseProps}
+        requestLogResponse={{
+          event_id: '101', available: true, previewable: true, downloadable: true,
+          sections: [
+            { title: 'REQUEST DIAGNOSTICS', content: '{"status":"incomplete","status_code":200,"terminal_received":false}' },
+            { title: 'REQUEST PARAMETERS', content: '{"model":"test"}' },
+            { title: 'REQUEST HEADERS', content: '{"Authorization":"[REDACTED]"}' },
+          ],
+        }}
+        onRequestLogDownload={onDownload}
+      />,
+    ));
+    expect(document.body.textContent).toContain('incomplete');
+    expect(document.body.textContent).toContain('terminal_received');
+    const download = Array.from(document.querySelectorAll('button')).find((button) => (
+      button.textContent?.includes('Download Redacted Details') || button.textContent?.includes('下载脱敏详情')
+      || button.textContent?.includes('usage_stats.request_events_log_download')
+    ));
+    expect(download).toBeDefined();
+    await act(async () => download?.click());
+    expect(onDownload).toHaveBeenCalledWith('101');
+  });
+
   it('prefers semantic boundaries and preserves complete grapheme clusters', () => {
     const semanticContent = `${'a'.repeat(1999)},${'b'.repeat(3000)}`;
     const semanticChunks = splitRequestLogVirtualChunks(semanticContent);

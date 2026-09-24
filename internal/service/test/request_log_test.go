@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -119,10 +120,10 @@ func TestRequestLogServiceLoadsEventLogWithoutCachingByRequestID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetUsageEventRequestLog returned error: %v", err)
 	}
-	if first.RequestID != "req-log-1" || first.Filename != "v1-responses-req-log-1.log" {
+	if first.RequestID != "req-log-1" || first.Filename != "request-diagnostic-req-log-1.log" {
 		t.Fatalf("unexpected first response: %+v", first)
 	}
-	if len(first.Sections) != 2 || first.Sections[0].Title != "REQUEST INFO" || first.Sections[1].Title != "API RESPONSE" {
+	if len(first.Sections) != 2 || first.Sections[0].Title != "PRIVACY" || first.Sections[1].Title != "REQUEST DIAGNOSTICS" {
 		t.Fatalf("unexpected sections: %+v", first.Sections)
 	}
 
@@ -135,7 +136,7 @@ func TestRequestLogServiceLoadsEventLogWithoutCachingByRequestID(t *testing.T) {
 	}
 }
 
-func TestRequestLogServiceMapsCPANotFoundToUnavailable(t *testing.T) {
+func TestRequestLogServiceMapsCPANotFoundToUsageSummary(t *testing.T) {
 	db := openRequestLogTestDB(t)
 	if _, _, err := repository.InsertUsageEvents(db, []entities.UsageEvent{{
 		EventKey:  "event-404",
@@ -150,14 +151,14 @@ func TestRequestLogServiceMapsCPANotFoundToUnavailable(t *testing.T) {
 	}
 	provider := service.NewRequestLogService(db, client)
 
-	_, err := provider.GetUsageEventRequestLog(context.Background(), 1)
-	if !errors.Is(err, service.ErrRequestLogUnavailable) {
-		t.Fatalf("expected ErrRequestLogUnavailable, got %v", err)
+	response, err := provider.GetUsageEventRequestLog(context.Background(), 1)
+	if err != nil || !response.Available || response.Sections[0].Title != "CAPTURE UNAVAILABLE" || !strings.Contains(response.Sections[0].Content, `"stream_status": "unknown"`) {
+		t.Fatalf("expected an explicitly limited usage summary, got %+v, %v", response, err)
 	}
 
 	_, err = provider.GetUsageEventRequestLog(context.Background(), 1)
-	if !errors.Is(err, service.ErrRequestLogUnavailable) {
-		t.Fatalf("expected second ErrRequestLogUnavailable, got %v", err)
+	if err != nil {
+		t.Fatalf("expected second limited usage summary, got %v", err)
 	}
 	if client.calls != 2 {
 		t.Fatalf("expected repeated 404 responses to refetch without cache, got %d calls", client.calls)
@@ -186,7 +187,7 @@ func TestRequestLogServiceCoalescesConcurrentPreviewMisses(t *testing.T) {
 		go func(eventID int64) {
 			defer wg.Done()
 			response, err := provider.GetUsageEventRequestLog(context.Background(), eventID)
-			if err == nil && response.Sections[0].Content != "coalesced" {
+			if err == nil && !strings.Contains(response.Sections[0].Content, "bodies are hidden") {
 				err = errors.New("unexpected response content")
 			}
 			if err == nil && response.EventID != eventID {
@@ -260,7 +261,7 @@ func TestRequestLogServiceCancelsPreviewFetchWhenOnlyWaiterCancels(t *testing.T)
 	if err != nil {
 		t.Fatalf("expected a fresh fetch after cancellation, got %v", err)
 	}
-	if len(response.Sections) != 1 || response.Sections[0].Content != "unused" {
+	if len(response.Sections) != 2 || !strings.Contains(response.Sections[0].Content, "bodies are hidden") {
 		t.Fatalf("unexpected retry response: %+v", response)
 	}
 	if client.fetchCalls() != 2 {
@@ -268,7 +269,7 @@ func TestRequestLogServiceCancelsPreviewFetchWhenOnlyWaiterCancels(t *testing.T)
 	}
 }
 
-func TestRequestLogServiceAllowsPreviewAtSixMiBLimit(t *testing.T) {
+func TestRequestLogServiceHidesRawPreviewAtSixMiBLimit(t *testing.T) {
 	const sixMiB = 6 * 1024 * 1024
 	db := openRequestLogTestDB(t)
 	if _, _, err := repository.InsertUsageEvents(db, []entities.UsageEvent{{
@@ -291,15 +292,15 @@ func TestRequestLogServiceAllowsPreviewAtSixMiBLimit(t *testing.T) {
 	if got := service.RequestLogPreviewMaxBytes(); got != sixMiB {
 		t.Fatalf("expected preview limit %d, got %d", sixMiB, got)
 	}
-	if response.TooLarge || !response.Previewable || len(response.Sections) != 1 {
+	if response.TooLarge || !response.Previewable || len(response.Sections) != 2 {
 		t.Fatalf("expected six MiB response to remain previewable, got %+v", response)
 	}
-	if len(response.Sections[0].Content) != sixMiB {
-		t.Fatalf("expected full six MiB preview content, got %d bytes", len(response.Sections[0].Content))
+	if !strings.Contains(response.Sections[0].Content, "bodies are hidden") {
+		t.Fatal("expected a privacy notice instead of raw preview content")
 	}
 }
 
-func TestRequestLogServiceTreatsOversizedBodyAsTooLargeWithoutTruncatedFlag(t *testing.T) {
+func TestRequestLogServiceHidesOversizedBodyWithoutTruncatedFlag(t *testing.T) {
 	const sixMiB = 6 * 1024 * 1024
 	db := openRequestLogTestDB(t)
 	if _, _, err := repository.InsertUsageEvents(db, []entities.UsageEvent{{
@@ -320,8 +321,8 @@ func TestRequestLogServiceTreatsOversizedBodyAsTooLargeWithoutTruncatedFlag(t *t
 	if err != nil {
 		t.Fatalf("GetUsageEventRequestLog returned error: %v", err)
 	}
-	if !response.TooLarge || response.Previewable || !response.Downloadable || len(response.Sections) != 0 {
-		t.Fatalf("expected oversized body fallback to require download, got %+v", response)
+	if response.TooLarge || !response.Previewable || !response.Downloadable || len(response.Sections) != 2 {
+		t.Fatalf("expected oversized raw body to be hidden, got %+v", response)
 	}
 }
 
@@ -344,7 +345,7 @@ func TestRequestLogServiceCoalescedPreviewReturnsLeaderCancellationWithoutAborti
 	leaderErr := make(chan error, 1)
 	go func() {
 		response, err := provider.GetUsageEventRequestLog(leaderCtx, 1)
-		if err == nil && response.Sections[0].Content != "leader survived" {
+		if err == nil && !strings.Contains(response.Sections[0].Content, "bodies are hidden") {
 			err = errors.New("unexpected leader response content")
 		}
 		leaderErr <- err
@@ -354,7 +355,7 @@ func TestRequestLogServiceCoalescedPreviewReturnsLeaderCancellationWithoutAborti
 	followerErr := make(chan error, 1)
 	go func() {
 		response, err := provider.GetUsageEventRequestLog(context.Background(), 1)
-		if err == nil && response.Sections[0].Content != "leader survived" {
+		if err == nil && !strings.Contains(response.Sections[0].Content, "bodies are hidden") {
 			err = errors.New("unexpected follower response content")
 		}
 		followerErr <- err
@@ -500,10 +501,10 @@ func TestRequestLogServiceHandlesLargePreviewAsDownloadable(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetUsageEventRequestLog returned error: %v", err)
 	}
-	if !response.TooLarge || !response.Downloadable || response.Previewable || len(response.Sections) != 0 {
+	if response.TooLarge || !response.Downloadable || !response.Previewable || len(response.Sections) != 2 {
 		t.Fatalf("unexpected large preview response: %+v", response)
 	}
-	if response.Filename != "large-request.log" {
+	if response.Filename != "request-diagnostic-req-large.log" {
 		t.Fatalf("unexpected filename %q", response.Filename)
 	}
 }
@@ -530,8 +531,8 @@ func TestRequestLogServiceTooLargePreviewRefetchesWithoutCache(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetUsageEventRequestLog returned error: %v", err)
 	}
-	if !response.TooLarge {
-		t.Fatalf("expected initial too-large response, got %+v", response)
+	if response.TooLarge || !response.Previewable || len(response.Sections) != 2 {
+		t.Fatalf("expected redacted metadata notice, got %+v", response)
 	}
 
 	client.mu.Lock()
@@ -541,7 +542,7 @@ func TestRequestLogServiceTooLargePreviewRefetchesWithoutCache(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected too-large response to refetch successfully, got %v", err)
 	}
-	if response.TooLarge || len(response.Sections) != 1 || response.Sections[0].Content != "small again" {
+	if response.TooLarge || len(response.Sections) != 2 || !strings.Contains(response.Sections[0].Content, "bodies are hidden") {
 		t.Fatalf("expected refetched preview response, got %+v", response)
 	}
 	if client.fetchCalls() != 2 {
@@ -549,7 +550,7 @@ func TestRequestLogServiceTooLargePreviewRefetchesWithoutCache(t *testing.T) {
 	}
 }
 
-func TestRequestLogServiceDownloadFetchesRawBody(t *testing.T) {
+func TestRequestLogServiceDownloadUsesRedactedPreview(t *testing.T) {
 	db := openRequestLogTestDB(t)
 	if _, _, err := repository.InsertUsageEvents(db, []entities.UsageEvent{{
 		EventKey:  "event-download",
@@ -558,12 +559,12 @@ func TestRequestLogServiceDownloadFetchesRawBody(t *testing.T) {
 		t.Fatalf("insert usage event: %v", err)
 	}
 
-	client := &requestLogClientStub{downloadResult: &cpa.RequestLogStream{
+	client := &requestLogClientStub{result: &cpa.RequestLogResult{
 		StatusCode:    http.StatusOK,
 		Filename:      "download.log",
 		ContentType:   "text/plain; charset=utf-8",
 		ContentLength: 7,
-		Body:          io.NopCloser(bytes.NewBufferString("raw log")),
+		Body:          []byte("raw log with secret-prompt"),
 	}}
 	provider := service.NewRequestLogService(db, client)
 	downloader, ok := provider.(interface {
@@ -582,11 +583,26 @@ func TestRequestLogServiceDownloadFetchesRawBody(t *testing.T) {
 		t.Fatalf("read download body: %v", err)
 	}
 	_ = download.Body.Close()
-	if string(body) != "raw log" || download.Filename != "download.log" || download.ContentType != "text/plain; charset=utf-8" {
+	if strings.Contains(string(body), "secret-prompt") || !strings.Contains(string(body), "bodies are hidden") || download.Filename != "request-diagnostic-req-download.log" || download.ContentType != "text/plain; charset=utf-8" {
 		t.Fatalf("unexpected download response: %+v", download)
 	}
-	if client.downloadCalls != 1 {
-		t.Fatalf("expected one raw download call, got %d", client.downloadCalls)
+	if client.downloadCalls != 0 || client.fetchCalls() != 1 {
+		t.Fatalf("download must use the redacted preview path, raw calls=%d", client.downloadCalls)
+	}
+}
+
+func TestRequestLogServiceDirectLookupDoesNotRequireUsageRow(t *testing.T) {
+	client := &requestLogClientStub{result: &cpa.RequestLogResult{
+		StatusCode: http.StatusOK, Filename: "diagnostic-responses-dd5e5a0f.log",
+		Body: []byte("=== REQUEST DIAGNOSTICS ===\n" + `{"diagnostic_version":1,"body_capture":"omitted","status":"incomplete","status_code":200}`),
+	}}
+	provider := service.NewRequestLogService(nil, client)
+	response, err := provider.GetRequestDiagnostic(context.Background(), "dd5e5a0f")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if response.EventID != 0 || response.Downloadable || !response.Previewable || !strings.Contains(response.Sections[0].Content, "incomplete") {
+		t.Fatalf("unexpected direct diagnostic: %+v", response)
 	}
 }
 

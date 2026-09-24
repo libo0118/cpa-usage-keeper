@@ -203,6 +203,20 @@ func FindUsageEventRequestIDByID(db *gorm.DB, id int64) (string, error) {
 	return strings.TrimSpace(event.RequestID), nil
 }
 
+func FindUsageEventDiagnosticByID(db *gorm.DB, id int64) (*entities.UsageEvent, error) {
+	if db == nil {
+		return nil, fmt.Errorf("database is nil")
+	}
+	if id <= 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+	var event entities.UsageEvent
+	if err := db.Select("id", "request_id", "timestamp", "model", "endpoint", "failed", "latency_ms").Where("id = ?", id).First(&event).Error; err != nil {
+		return nil, err
+	}
+	return &event, nil
+}
+
 func loadUsageEventRecordsForQuery(db *gorm.DB, query *gorm.DB, costResolver pricing.Resolver) ([]dto.UsageEventRecord, error) {
 	var rows []dto.UsageEventRecord
 	// Request Events cost 只在响应阶段按当前价格配置计算，不回写 usage_events。

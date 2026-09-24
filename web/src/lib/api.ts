@@ -564,6 +564,14 @@ export async function fetchUsageEventRequestLog(eventId: string, signal?: AbortS
   return response.json()
 }
 
+export async function fetchRequestDiagnostic(requestId: string, signal?: AbortSignal): Promise<UsageEventRequestLogResponse> {
+  const response = await apiFetch(apiPath(`/usage/request-diagnostics/${encodeURIComponent(requestId)}`), { signal, cache: 'no-store' })
+  if (!response.ok) {
+    await parseApiError(response, `Failed to load request diagnostic: ${response.status}`)
+  }
+  return response.json()
+}
+
 export async function createUsageEventRequestLogDownloadURL(eventId: string): Promise<string> {
   const response = await apiFetch(apiPath(`/usage/events/${encodeURIComponent(eventId)}/request-log/download-token`), { method: 'POST', cache: 'no-store' })
   if (!response.ok) {

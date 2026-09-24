@@ -152,6 +152,29 @@ func registerUsageEventsRoute(
 ) {
 	exportSlots := make(chan struct{}, usageEventsExportMaxConcurrency)
 
+	router.GET("/usage/request-diagnostics/:requestID", func(c *gin.Context) {
+		if !requestLogAccessEnabled {
+			writeUsageEventRequestLogAccessDisabled(c)
+			return
+		}
+		requestID := strings.TrimSpace(c.Param("requestID"))
+		if requestID == "" || len(requestID) > 128 || strings.Trim(requestID, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_") != "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request ID"})
+			return
+		}
+		if requestLogProvider == nil {
+			writeInternalError(c, "request log provider is not configured", nil)
+			return
+		}
+		response, err := requestLogProvider.GetRequestDiagnostic(c.Request.Context(), requestID)
+		if err != nil {
+			writeUsageEventRequestLogError(c, err)
+			return
+		}
+		setNoStoreHeaders(c)
+		c.JSON(http.StatusOK, buildUsageEventRequestLogPayload(response))
+	})
+
 	router.GET("/usage/events/filters/models", func(c *gin.Context) {
 		models, err := loadUsageEventModelFilterOptions(c, usageProvider)
 		if err != nil {
