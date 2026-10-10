@@ -140,6 +140,12 @@ func normalizeCodexQuotaRows(result CodexResult) []QuotaRow {
 		secondaryLabel := additional.LimitName + " Weekly"
 		rows = appendCodexWindowQuotaRows(rows, "additional_rate_limits."+additional.LimitName, primaryLabel, secondaryLabel, "additional", metric, additional.RateLimit)
 	}
+	if credits := result.Usage.Credits; credits != nil && (credits.Balance != nil || credits.Unlimited) {
+		rows = append(rows, QuotaRow{
+			Key: "credits.balance", Label: "Credits Balance", Scope: "credits", Metric: "credits",
+			Remaining: credits.Balance, Unlimited: credits.Unlimited,
+		})
+	}
 	return rows
 }
 

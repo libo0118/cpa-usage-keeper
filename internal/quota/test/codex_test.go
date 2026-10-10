@@ -50,8 +50,11 @@ func TestCodexProviderUsesAccountIDForUsageRequest(t *testing.T) {
 		t.Fatalf("expected parsed reset credits payload, got %#v", result.Usage.RateLimitResetCredits)
 	}
 	rows := quota.NormalizeQuotaRows(output)
-	if len(rows) != 2 {
+	if len(rows) != 3 {
 		t.Fatalf("expected normalized Codex rows, got %#v", rows)
+	}
+	if balance := findQuotaRow(t, rows, "credits.balance"); balance.Remaining == nil || *balance.Remaining != 0 {
+		t.Fatal("expected explicit zero credit balance")
 	}
 	subscription := quota.NormalizeSubscription(output)
 	if subscription == nil || subscription.Provider != "codex" || subscription.Plan != "plus" {

@@ -37,6 +37,7 @@ export interface DisplayQuota {
   remaining?: number
   resetText?: string
   credits?: boolean
+  unlimited?: boolean
   available?: boolean
   expiresAt?: string
   windowSeconds?: number
@@ -235,6 +236,7 @@ function toDisplayQuota(row: UsageQuotaRow): DisplayQuota | undefined {
     remaining,
     resetText: row.resetAt,
     credits: row.metric === 'credits',
+    unlimited: row.unlimited === true,
     available: row.allowed,
     expiresAt: row.expiresAt,
     windowSeconds,
@@ -452,7 +454,7 @@ function quotaUsedPercent(percentDisplay: { percent: number | null; kind: Displa
 }
 
 function isDisplayableQuota(quota: DisplayQuota | undefined): quota is DisplayQuota {
-  return quota !== undefined && (quota.barPercent !== null || quota.billingUsage !== undefined || (quota.credits === true && quota.remaining !== undefined))
+  return quota !== undefined && (quota.barPercent !== null || quota.billingUsage !== undefined || (quota.credits === true && (quota.remaining !== undefined || quota.unlimited === true)))
 }
 
 function credentialDisplayName(identity: UsageIdentity): string {

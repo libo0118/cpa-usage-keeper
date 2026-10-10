@@ -10,6 +10,8 @@ Explicitly non-billable requests display zero. Billable requests use valid upstr
 
 The branch also retains WorkBuddy quota packages and request Credits, Cursor quota support, native CPA key budgets and observed quota-cycle synchronization, redacted request diagnostics, and direct request-ID lookup. Provider tokens remain in CPA.
 
+Codex spendable Credits are shown separately from rate-limit windows and reset grants. Explicit zero balances and unlimited credits are preserved; missing or invalid balances are not replaced with zero. Header-only quota updates retain the last observed credit balance.
+
 The v1.15.10 merge keeps both `response_model` and the existing `upstream_response_model` in ingestion, APIs, exports, and hot/archive storage. Only missing values are filled from the other field; distinct observed values are preserved. The UI prefers the custom upstream-reported value, with the official field as fallback. The compatibility migration preserves Credits, existing request models, and nullable parent sessions; missing stream/status metadata remains unknown. Archived request retention remains disabled by default.
 
 ## Updating

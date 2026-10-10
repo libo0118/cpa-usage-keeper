@@ -2084,14 +2084,14 @@ function QuotaBar({ quota, quotaUsageMode, timeZone, showGroupMetadata = true, t
     return (
       <div className={styles.credentialQuotaBarBlock}>
         <div className={styles.credentialQuotaBarHeader}>
-          <span>{quota.label}</span>
-          <strong>{t('usage_stats.qoder_remaining', { defaultValue: '剩余' })} {quota.remaining?.toLocaleString()} Credits</strong>
+          <span>{quota.key === 'credits.balance' ? t('usage_stats.codex_credits_balance') : quota.label}</span>
+          <strong>{quota.unlimited ? t('usage_stats.codex_credits_unlimited') : <>{t('usage_stats.qoder_remaining', { defaultValue: '剩余' })} {quota.remaining?.toLocaleString()} Credits</>}</strong>
         </div>
         {quota.barPercent !== null && <div className={styles.credentialQuotaTrack}><span className={`${styles.credentialQuotaFill} ${credentialToneClassName('credentialQuotaFill', quota.status)}`} style={{ width: `${quota.barPercent}%` }} /></div>}
-        <div className={styles.credentialQuotaMeta}>
-          <span>{t('usage_stats.qoder_used', { defaultValue: '已用' })} {quota.used?.toLocaleString()}{quota.limit !== undefined ? ` / ${quota.limit.toLocaleString()}` : ''}</span>
+        {(quota.used !== undefined || quota.expiresAt || quota.available === false) && <div className={styles.credentialQuotaMeta}>
+          {quota.used !== undefined && <span>{t('usage_stats.qoder_used', { defaultValue: '已用' })} {quota.used.toLocaleString()}{quota.limit !== undefined ? ` / ${quota.limit.toLocaleString()}` : ''}</span>}
           <span>{expired ? t('usage_stats.qoder_expired', { defaultValue: '已到期' }) : quota.available === false ? t('usage_stats.qoder_unavailable', { defaultValue: '不可用' }) : ''}{quota.expiresAt ? ` · ${t('usage_stats.qoder_expiry', { defaultValue: '到期' })} ${new Date(quota.expiresAt).toLocaleString()}` : ''}</span>
-        </div>
+        </div>}
       </div>
     )
   }

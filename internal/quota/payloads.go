@@ -88,6 +88,7 @@ func parseCodexUsagePayload(response *apicall.Response) (*CodexUsagePayload, err
 		RateLimit:             parseCodexRateLimitInfo(objectField(object, "rate_limit", "rateLimit")),
 		CodeReviewRateLimit:   parseCodexRateLimitInfo(objectField(object, "code_review_rate_limit", "codeReviewRateLimit")),
 		RateLimitResetCredits: parseCodexRateLimitResetCredits(objectField(object, "rate_limit_reset_credits", "rateLimitResetCredits")),
+		Credits:               parseCodexCredits(objectField(object, "credits")),
 	}
 	for _, raw := range arrayField(object, "additional_rate_limits", "additionalRateLimits") {
 		limitObject := rawObject(raw)
@@ -126,6 +127,17 @@ func parseCodexSubscriptionActiveUntil(response *apicall.Response) *time.Time {
 		return &parsed
 	}
 	return nil
+}
+
+func parseCodexCredits(object map[string]json.RawMessage) *CodexCredits {
+	if object == nil {
+		return nil
+	}
+	balance := floatPtrField(object, "balance")
+	if balance != nil && (math.IsNaN(*balance) || math.IsInf(*balance, 0)) {
+		balance = nil
+	}
+	return &CodexCredits{Balance: balance, Unlimited: boolField(object, "unlimited")}
 }
 
 func parseCodexRateLimitResetCredits(object map[string]json.RawMessage) *CodexRateLimitResetCredits {

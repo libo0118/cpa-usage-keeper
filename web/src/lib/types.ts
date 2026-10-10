@@ -491,6 +491,7 @@ export interface UsageQuotaRow {
   used?: number
   limit?: number
   remaining?: number
+  unlimited?: boolean
   usedPercent?: number
   remainingFraction?: number
   allowed?: boolean

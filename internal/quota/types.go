@@ -68,6 +68,7 @@ type QuotaRow struct {
 	Used              *float64     `json:"used,omitempty"`
 	Limit             *float64     `json:"limit,omitempty"`
 	Remaining         *float64     `json:"remaining,omitempty"`
+	Unlimited         bool         `json:"unlimited,omitempty"`
 	UsedPercent       *float64     `json:"usedPercent,omitempty"`
 	RemainingFraction *float64     `json:"remainingFraction,omitempty"`
 	Allowed           *bool        `json:"allowed,omitempty"`
@@ -138,6 +139,11 @@ type CodexRateLimitResetCredits struct {
 	AvailableCount *int `json:"availableCount,omitempty"`
 }
 
+type CodexCredits struct {
+	Balance   *float64 `json:"balance,omitempty"`
+	Unlimited bool     `json:"unlimited,omitempty"`
+}
+
 type CodexRateLimitResetCredit struct {
 	ID        string `json:"id"`
 	Status    string `json:"status"`
@@ -151,6 +157,7 @@ type CodexUsagePayload struct {
 	CodeReviewRateLimit   *CodexRateLimitInfo         `json:"codeReviewRateLimit,omitempty"`
 	AdditionalRateLimits  []CodexAdditionalRateLimit  `json:"additionalRateLimits,omitempty"`
 	RateLimitResetCredits *CodexRateLimitResetCredits `json:"rateLimitResetCredits,omitempty"`
+	Credits               *CodexCredits               `json:"credits,omitempty"`
 }
 
 type GeminiCliQuotaBucket struct {
