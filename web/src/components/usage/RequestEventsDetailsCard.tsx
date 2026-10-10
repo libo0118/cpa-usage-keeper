@@ -29,6 +29,7 @@ import {
 import type { UsageEvent, UsageEventRequestLogResponse, UsageSourceFilterOption } from '@/lib/types';
 import { useScrollBoundaryContainment } from '@/hooks/useScrollBoundaryContainment';
 import { compareModelNames } from '@/utils/modelSort';
+import { getUsageModelDisplay } from '@/utils/usage/modelDisplay';
 import {
   calculateCacheReadRate,
   formatDurationMs,
@@ -47,7 +48,7 @@ import {
 import { RequestEventsColumnSettingsModal } from './RequestEventsColumnSettingsModal';
 import { RequestEventLogModal } from './RequestEventLogModal';
 import { RequestEventResultBadge } from './RequestEventResultBadge';
-import { RequestModelCell } from './RequestModelCell';
+import { getRequestModelDetails, RequestModelCell } from './RequestModelCell';
 
 export { splitRequestLogVirtualChunks } from './RequestEventLogModal';
 
@@ -117,7 +118,6 @@ type RequestEventRow = {
   timestampDateLabel: string;
   apiKey: string;
   model: string;
-  modelAlias: string;
   reasoningEffort: string;
   speedMode: string;
   speedModeRaw: string;
@@ -178,6 +178,15 @@ type RequestEventTableRowProps = {
   columns: readonly RequestEventColumnDefinition[];
   virtualIndex?: number;
   measureElement?: (node: HTMLTableRowElement | null) => void;
+};
+
+type RequestEventsModelTooltipActions = Pick<ReturnType<typeof usePortalTooltip>,
+  'showOnMouseEnter' | 'hideOnMouseLeave' | 'showOnFocus' | 'hideOnBlur'>;
+
+type RequestEventsModelCellProps = {
+  row: RequestEventRow;
+  tooltipLines: string[];
+  tooltipActions: RequestEventsModelTooltipActions;
 };
 
 function RequestEventsTokenMetric({
@@ -249,6 +258,47 @@ function RequestEventsCacheMetric({
       </span>
       <span>{value}</span>
     </span>
+  );
+}
+
+function RequestEventsModelCell({
+  row,
+  tooltipLines,
+  tooltipActions,
+}: RequestEventsModelCellProps) {
+  const cellRef = useRef<HTMLTableCellElement | null>(null);
+
+  useEffect(() => {
+    const cell = cellRef.current;
+    return () => {
+      if (!cell) return;
+      tooltipActions.hideOnMouseLeave(cell);
+      tooltipActions.hideOnBlur(cell);
+    };
+  }, [tooltipActions]);
+
+  const interactive = tooltipLines.length > 0;
+  return (
+    <td
+      ref={cellRef}
+      className={`${styles.modelCell} ${styles.requestEventsStackedCell}`}
+      tabIndex={interactive ? 0 : undefined}
+      aria-label={interactive ? tooltipLines.join('; ') : undefined}
+      onMouseEnter={interactive
+        ? (event) => tooltipActions.showOnMouseEnter(tooltipLines, event.currentTarget)
+        : undefined}
+      onMouseLeave={interactive
+        ? (event) => tooltipActions.hideOnMouseLeave(event.currentTarget)
+        : undefined}
+      onFocus={interactive
+        ? (event) => tooltipActions.showOnFocus(tooltipLines, event.currentTarget)
+        : undefined}
+      onBlur={interactive
+        ? (event) => tooltipActions.hideOnBlur(event.currentTarget)
+        : undefined}
+    >
+      <RequestModelCell event={row.event} tooltipManaged />
+    </td>
   );
 }
 
@@ -411,6 +461,11 @@ const buildCacheTooltipLines = (
   formatRequestEventMetricTooltipLine(t('usage_stats.cache_creation_tokens'), row.cacheCreationTokensLabel, t),
 ];
 
+const buildModelTooltipLines = (
+  row: RequestEventRow,
+  t: (key: string, options?: Record<string, string>) => string,
+): string[] => getRequestModelDetails(row.event, t).tooltipLines;
+
 const parseRequestEndpoint = (rawEndpoint: unknown): { requestType: string; endpoint: string } => {
   const raw = String(rawEndpoint ?? '').trim().replace(/\s+/g, ' ');
   if (!raw) {
@@ -561,10 +616,8 @@ export function RequestEventsDetailsCard({
       const source = String(event.source ?? '').trim() || '-';
       const sourceType = String(event.source_type ?? '').trim();
       const apiKey = String(event.api_key ?? '').trim() || '-';
-      const modelValue = String(event.model ?? '').trim();
-      const model = modelValue || '-';
-      const modelAliasValue = String(event.model_alias ?? '').trim();
-      const modelAlias = modelAliasValue && modelAliasValue !== modelValue ? modelAliasValue : '-';
+      const modelDisplay = getUsageModelDisplay(event.model, event.response_model, event.model_alias);
+      const model = modelDisplay.model;
       const reasoningEffort = String(event.reasoning_effort ?? '').trim() || '-';
       const speedModeRaw = String(event.service_tier ?? '').trim() || '-';
       const responseSpeedModeRaw = String(event.response_service_tier ?? '').trim() || '-';
@@ -604,7 +657,6 @@ export function RequestEventsDetailsCard({
         timestampDateLabel: timestampLabels.date,
         apiKey,
         model,
-        modelAlias,
         reasoningEffort,
         speedMode,
         speedModeRaw,
@@ -810,6 +862,18 @@ export function RequestEventsDetailsCard({
   const effectiveSourceFilter = sourceOptionSet.has(sourceFilter) ? sourceFilter : ALL_FILTER;
   const effectiveResultFilter = resultOptionSet.has(resultFilter) ? resultFilter : ALL_FILTER;
 
+  const modelTooltipActions = useMemo<RequestEventsModelTooltipActions>(() => ({
+    showOnMouseEnter: handleRequestEventsTooltipMouseEnter,
+    hideOnMouseLeave: handleRequestEventsTooltipMouseLeave,
+    showOnFocus: handleRequestEventsTooltipFocus,
+    hideOnBlur: handleRequestEventsTooltipBlur,
+  }), [
+    handleRequestEventsTooltipBlur,
+    handleRequestEventsTooltipFocus,
+    handleRequestEventsTooltipMouseEnter,
+    handleRequestEventsTooltipMouseLeave,
+  ]);
+
   const columnDefinitions = useMemo<RequestEventColumnDefinition[]>(() => {
     const definitions: RequestEventColumnDefinition[] = [
       {
@@ -854,9 +918,11 @@ export function RequestEventsDetailsCard({
         label: t('usage_stats.model_name'),
         header: <th>{t('usage_stats.model_name')}</th>,
         renderCell: (row) => (
-          <td className={`${styles.modelCell} ${styles.requestEventsStackedCell}`}>
-            <RequestModelCell event={row.event} />
-          </td>
+          <RequestEventsModelCell
+            row={row}
+            tooltipLines={buildModelTooltipLines(row, t)}
+            tooltipActions={modelTooltipActions}
+          />
         ),
       },
       {
@@ -1066,6 +1132,7 @@ export function RequestEventsDetailsCard({
     handleRequestEventsTooltipMouseEnter,
     handleRequestEventsTooltipMouseLeave,
     latencyHint,
+    modelTooltipActions,
     onRequestLogOpen,
     requestLogAccessEnabled,
     requestLogLoadingEventId,

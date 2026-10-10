@@ -1,9 +1,11 @@
 import antigravityIcon from '@/assets/icons/antigravity.svg'
 import claudeIcon from '@/assets/icons/claude.svg'
 import codexIcon from '@/assets/icons/codex.svg'
+import devinIcon from '@/assets/icons/devin.svg'
 import geminiIcon from '@/assets/icons/gemini.svg'
 import grokIcon from '@/assets/icons/grok.svg'
 import kimiIcon from '@/assets/icons/kimi.svg'
+import metaIcon from '@/assets/icons/meta.svg'
 import openaiIcon from '@/assets/icons/openai.svg'
 import vertexIcon from '@/assets/icons/vertex.svg'
 import qoderIcon from '@/assets/icons/qoder.svg'
@@ -16,8 +18,10 @@ export const PROVIDER_BRAND_ICON_KEYS = [
   'claude',
   'codex',
   'cursor',
+  'devin',
   'gemini',
   'kimi',
+  'meta',
   'openai',
   'vertex',
   'xai',
@@ -41,10 +45,15 @@ const providerBrandIconKeyByType: Readonly<Record<string, ProviderBrandIconKey>>
   claude: 'claude',
   codex: 'codex',
   cursor: 'cursor',
+  devin: 'devin',
   gemini: 'gemini',
   'gemini-cli': 'gemini',
   'gemini-interactions': 'gemini',
   kimi: 'kimi',
+  'kimi-ai': 'kimi',
+  'kimi.ai': 'kimi',
+  'kimi.com': 'kimi',
+  meta: 'meta',
   openai: 'openai',
   vertex: 'vertex',
   xai: 'xai',
@@ -62,8 +71,10 @@ const providerBrandIconUrlByKey: Readonly<Record<ProviderBrandIconKey, string>> 
   claude: claudeIcon,
   codex: codexIcon,
   cursor: 'https://ptht05hbb1ssoooe.public.blob.vercel-storage.com/assets/brand/brand-logo-5.svg',
+  devin: devinIcon,
   gemini: geminiIcon,
   kimi: kimiIcon,
+  meta: metaIcon,
   openai: openaiIcon,
   vertex: vertexIcon,
   xai: grokIcon,

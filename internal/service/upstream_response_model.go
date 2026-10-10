@@ -12,6 +12,10 @@ func normalizeUpstreamResponseModel(raw json.RawMessage) string {
 	if json.Unmarshal(raw, &model) != nil {
 		return ""
 	}
+	return normalizeResponseModel(model)
+}
+
+func normalizeResponseModel(model string) string {
 	model = strings.TrimSpace(model)
 	if len(model) == 0 || len(model) > 512 || !utf8.ValidString(model) {
 		return ""

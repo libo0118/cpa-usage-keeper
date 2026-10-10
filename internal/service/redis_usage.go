@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -38,12 +39,14 @@ func DecodeRedisUsageMessageWithHeaders(message string, fetchedAt time.Time) (en
 type queuedUsageDetail struct {
 	QoderCredits          json.RawMessage `json:"qoder_credits"`
 	WorkBuddyCredits      json.RawMessage `json:"workbuddy_credits"`
+	UpstreamResponseModel json.RawMessage `json:"upstream_response_model"`
 	Timestamp             time.Time       `json:"timestamp"`
 	LatencyMS             int64           `json:"latency_ms"`
 	TTFTMS                *int64          `json:"ttft_ms"`
 	Source                string          `json:"source"`
 	AuthIndex             string          `json:"auth_index"`
 	ClientIP              *string         `json:"client_ip"`
+	ResolvedClientIP      *string         `json:"resolved_client_ip"`
 	XForwardedFor         *string         `json:"x_forwarded_for"`
 	UserAgent             *string         `json:"user_agent"`
 	Tokens                dto.TokenStats  `json:"tokens"`
@@ -52,10 +55,10 @@ type queuedUsageDetail struct {
 	Provider              string          `json:"provider"`
 	Model                 string          `json:"model"`
 	Alias                 *string         `json:"alias"`
+	ResponseModel         string          `json:"response_model"`
 	ReasoningEffort       string          `json:"reasoning_effort"`
 	ServiceTier           string          `json:"service_tier"`
 	ResponseServiceTier   string          `json:"response_service_tier"`
-	UpstreamResponseModel json.RawMessage `json:"upstream_response_model"`
 	ExecutorType          string          `json:"executor_type"`
 	Endpoint              string          `json:"endpoint"`
 	AuthType              string          `json:"auth_type"`
@@ -63,7 +66,14 @@ type queuedUsageDetail struct {
 	RequestID             string          `json:"request_id"`
 	SessionID             string          `json:"session_id"`
 	ParentSessionID       string          `json:"parent_session_id"`
+	Stream                *bool           `json:"stream"`
+	Fail                  redisUsageFail  `json:"fail"`
 	ResponseHeaders       json.RawMessage `json:"response_headers"`
+}
+
+type redisUsageFail struct {
+	StatusCode *int   `json:"status_code"`
+	Body       string `json:"body"`
 }
 
 func normalizeRedisAuthType(value string) string {
@@ -83,6 +93,15 @@ func trimRedisOptionalString(value *string) *string {
 		return nil
 	}
 	return &trimmed
+}
+
+func (d queuedUsageDetail) clientIP() *string {
+	// CPA resolves forwarding headers against its trusted proxies. Legacy messages
+	// retain their original client_ip; do not independently trust X-Forwarded-For.
+	if resolved := trimRedisOptionalString(d.ResolvedClientIP); resolved != nil && net.ParseIP(*resolved) != nil {
+		return resolved
+	}
+	return d.ClientIP
 }
 
 func normalizeRedisGenerate(value *bool, failed bool, executorType string, tokens dto.TokenStats) *bool {
@@ -118,9 +137,12 @@ func (d queuedUsageDetail) toUsageEvent(fetchedAt time.Time) entities.UsageEvent
 	source := strings.TrimSpace(d.Source)
 	authIndex := strings.TrimSpace(d.AuthIndex)
 	eventKey := strings.TrimSpace(d.RequestID)
+	responseModel := normalizeResponseModel(d.ResponseModel)
+	upstreamResponseModel := normalizeUpstreamResponseModel(d.UpstreamResponseModel)
 	return entities.UsageEvent{
 		QoderCredits:          normalizeQoderCredits(d.Provider, d.QoderCredits),
 		WorkBuddyCredits:      normalizeWorkBuddyCredits(d.Provider, d.WorkBuddyCredits),
+		UpstreamResponseModel: firstNonEmpty(upstreamResponseModel, responseModel),
 		EventKey:              eventKey,
 		APIGroupKey:           apiGroupKey,
 		Provider:              strings.TrimSpace(d.Provider),
@@ -128,13 +150,13 @@ func (d queuedUsageDetail) toUsageEvent(fetchedAt time.Time) entities.UsageEvent
 		AuthType:              normalizeRedisAuthType(d.AuthType),
 		RequestID:             strings.TrimSpace(d.RequestID),
 		SessionID:             strings.TrimSpace(d.SessionID),
-		ParentSessionID:       strings.TrimSpace(d.ParentSessionID),
-		ClientIP:              d.ClientIP,
+		ParentSessionID:       trimRedisOptionalString(&d.ParentSessionID),
+		ClientIP:              d.clientIP(),
 		XForwardedFor:         d.XForwardedFor,
 		UserAgent:             d.UserAgent,
 		Model:                 model,
 		ModelAlias:            trimRedisOptionalString(d.Alias),
-		UpstreamResponseModel: normalizeUpstreamResponseModel(d.UpstreamResponseModel),
+		ResponseModel:         firstNonEmpty(responseModel, upstreamResponseModel),
 		ReasoningEffort:       strings.TrimSpace(d.ReasoningEffort),
 		ServiceTier:           strings.TrimSpace(d.ServiceTier),
 		ResponseServiceTier:   strings.TrimSpace(d.ResponseServiceTier),
@@ -143,7 +165,9 @@ func (d queuedUsageDetail) toUsageEvent(fetchedAt time.Time) entities.UsageEvent
 		Source:                source,
 		AuthIndex:             authIndex,
 		Failed:                d.Failed,
+		StatusCode:            d.Fail.StatusCode,
 		Generate:              normalizeRedisGenerate(d.Generate, d.Failed, d.ExecutorType, d.Tokens),
+		Stream:                d.Stream,
 		LatencyMS:             max(d.LatencyMS, 0),
 		TTFTMS:                d.TTFTMS,
 		InputTokens:           d.Tokens.InputTokens,

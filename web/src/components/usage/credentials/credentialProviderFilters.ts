@@ -25,9 +25,10 @@ const AUTH_FILE_PROVIDER_FILTERS: KnownCredentialProviderFilter[] = [
   { key: 'antigravity', labelKey: 'usage_stats.credentials_filter_antigravity', types: ['antigravity'] },
   { key: 'claude', labelKey: 'usage_stats.credentials_filter_claude', types: ['claude'] },
   { key: 'codex', labelKey: 'usage_stats.credentials_filter_codex', types: ['codex'] },
+  { key: 'devin', labelKey: 'usage_stats.credentials_filter_devin', types: ['devin'] },
   // Gemini Auth File 兼容 CPA 的原始与 CLI type，并统一复用 Gemini 品牌筛选。
   { key: 'gemini', labelKey: 'usage_stats.credentials_filter_gemini', types: ['gemini', 'gemini-cli'] },
-  { key: 'kimi', labelKey: 'usage_stats.credentials_filter_kimi', types: ['kimi'] },
+  { key: 'kimi', labelKey: 'usage_stats.credentials_filter_kimi', types: ['kimi', 'kimi-ai', 'kimi.ai', 'kimi.com'] },
   { key: 'xai', labelKey: 'usage_stats.credentials_filter_xai', types: ['xai'] },
   { key: 'vertex', labelKey: 'usage_stats.credentials_filter_vertex', types: ['vertex'] },
 ]
@@ -39,6 +40,7 @@ const AI_PROVIDER_FILTERS: KnownCredentialProviderFilter[] = [
   { key: 'gemini', labelKey: 'usage_stats.credentials_filter_gemini', types: ['gemini', 'gemini-cli', 'gemini-interactions'] },
   { key: 'claude', labelKey: 'usage_stats.credentials_filter_claude', types: ['claude'] },
   { key: 'vertex', labelKey: 'usage_stats.credentials_filter_vertex', types: ['vertex'] },
+  { key: 'meta', labelKey: 'usage_stats.credentials_filter_meta', types: ['meta'] },
   { key: 'openai', labelKey: 'usage_stats.credentials_filter_openai', types: ['openai'] },
 ]
 
@@ -68,7 +70,21 @@ export function normalizeCredentialProviderFilterKey(scope: CredentialProviderFi
     : 'all'
 }
 
-export function buildCredentialProviderFilterOptions(scope: CredentialProviderFilterScope, typeCounts: UsageIdentityTypeCount[]): CredentialProviderFilterOption[] {
+// null 表示没有有效的链接筛选；显式 all 必须区别于回退到本地偏好。
+export function resolveCredentialProviderFilterFromSearch(scope: CredentialProviderFilterScope, search: string): CredentialProviderFilterKey | null {
+  const value = new URLSearchParams(search).get('provider')
+  return value !== null && normalizeCredentialProviderFilterKey(scope, value) === value
+    ? value as CredentialProviderFilterKey
+    : null
+}
+
+export function buildCredentialProviderSearch(search: string, filter: CredentialProviderFilterKey): string {
+  const params = new URLSearchParams(search)
+  params.set('provider', filter)
+  return `?${params.toString()}`
+}
+
+export function buildCredentialProviderFilterOptions(scope: CredentialProviderFilterScope, typeCounts: UsageIdentityTypeCount[], selected: CredentialProviderFilterKey = 'all'): CredentialProviderFilterOption[] {
   const countsByType = new Map<string, number>()
   let allCount = 0
 
@@ -81,7 +97,7 @@ export function buildCredentialProviderFilterOptions(scope: CredentialProviderFi
     countsByType.set(item.type, (countsByType.get(item.type) ?? 0) + count)
   }
 
-  if (allCount <= 0) {
+  if (allCount <= 0 && selected === 'all') {
     return []
   }
 
@@ -90,7 +106,8 @@ export function buildCredentialProviderFilterOptions(scope: CredentialProviderFi
   // 每个品牌按钮可以聚合多个原始 type；未知 type 仍只计入 All，不单独生成按钮。
   for (const filter of credentialProviderFiltersForScope(scope)) {
     const count = filter.types.reduce((sum, type) => sum + (countsByType.get(type) ?? 0), 0)
-    if (count <= 0) {
+    // 链接指定的供应商即使暂时没有凭据，也保留选中项和返回 All 的入口。
+    if (count <= 0 && filter.key !== selected) {
       continue
     }
     options.push({ key: filter.key, labelKey: filter.labelKey, count, knownKey: filter.key })

@@ -1,8 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { appendUniqueUsageEvents, getBackToCPALinkURL, getCredentialSectionVisibility, getOverviewDisplayLoading, getUsageCustomRangeForTab, getUsageTabOptions, handleUsageEventLoadMoreError, isUsagePageVisible, loadAnalysisSections, loadRequestEventsPreferences, loadUsagePageVersionInfo, normalizeRequestEventsPreferences, normalizeStoredApiKeyFilter, normalizeUsageTabValue, refreshPageData, REQUEST_EVENTS_PREFERENCES_STORAGE_KEY, resolveApiKeyFilterRequestState, runUsageEventRequestLogDownload, sanitizeRequestEventFilters, saveRequestEventsPreferences, scheduleOverviewAutoRefresh, shouldAutoRefreshUsageTab, shouldResetSelectedApiKeyFilter, shouldShowApiKeyFilter, shouldShowRangeControls, shouldShowUpdateCheckButton, getUpdateCheckToastDuration, API_KEY_FILTER_MAX_LENGTH } from '../UsagePage';
+import { appendUniqueUsageEvents, getBackToCPALinkURL, getCredentialSectionVisibility, getOverviewDisplayLoading, getUsageCustomRangeForTab, getUsageTabOptions, handleUsageEventLoadMoreError, isUsagePageVisible, loadAnalysisSections, loadRequestEventsPreferences, loadUsagePageVersionInfo, normalizeRequestEventsPreferences, normalizeStoredApiKeyFilter, normalizeUsageTabValue, refreshPageData, REQUEST_EVENTS_PREFERENCES_STORAGE_KEY, resolveApiKeyFilterRequestState, resolveCredentialTimeZone, runUsageEventRequestLogDownload, sanitizeRequestEventFilters, saveRequestEventsPreferences, scheduleOverviewAutoRefresh, shouldAutoRefreshUsageTab, shouldResetSelectedApiKeyFilter, shouldShowApiKeyFilter, shouldShowRangeControls, shouldShowUpdateCheckButton, getUpdateCheckToastDuration, API_KEY_FILTER_MAX_LENGTH } from '../UsagePage';
 import { REQUEST_EVENT_COLUMN_IDS } from '@/components/usage/RequestEventsDetailsCard';
 import { ApiError } from '@/lib/api';
 import type { UsageFilterWindow, VersionResponse } from '@/lib/types';
+
+describe('resolveCredentialTimeZone', () => {
+  it('uses only current server responses and never a persisted range timezone', () => {
+    expect(resolveCredentialTimeZone(' Asia/Shanghai ', 'UTC')).toBe('Asia/Shanghai');
+    expect(resolveCredentialTimeZone(undefined, 'America/New_York')).toBe('America/New_York');
+    expect(resolveCredentialTimeZone(undefined, undefined)).toBeUndefined();
+  });
+});
 
 describe('appendUniqueUsageEvents', () => {
   it('appends cursor batches without duplicating overlapping event ids', () => {
@@ -822,6 +830,7 @@ describe('UsagePage tab labels', () => {
       'translated:usage_stats.tab_events',
       'translated:usage_stats.tab_auth_files',
       'translated:usage_stats.tab_ai_provider',
+      'translated:key_budgets.title',
       'translated:usage_stats.tab_settings',
     ]);
   });
@@ -829,7 +838,7 @@ describe('UsagePage tab labels', () => {
   it('omits Ranking from the CPAMC embedded navigation', () => {
     const values = getUsageTabOptions((key) => key, { includeRanking: false }).map((option) => option.value);
 
-    expect(values).toEqual(['overview', 'realtime', 'analysis', 'events', 'auth-files', 'ai-provider', 'settings']);
+    expect(values).toEqual(['overview', 'realtime', 'analysis', 'events', 'auth-files', 'ai-provider', 'key-budgets', 'settings']);
   });
 });
 

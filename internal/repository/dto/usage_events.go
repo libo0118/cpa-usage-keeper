@@ -21,12 +21,13 @@ type UsageEventFilterOptionsRecord struct {
 type UsageEventRecord struct {
 	QoderCredits          *string
 	WorkBuddyCredits      *string
+	UpstreamResponseModel string
 	ID                    int64
 	Timestamp             time.Time
 	APIGroupKey           string
 	Model                 string
 	ModelAlias            string
-	UpstreamResponseModel string
+	ResponseModel         string
 	ReasoningEffort       string
 	ServiceTier           string
 	ResponseServiceTier   string
@@ -41,6 +42,8 @@ type UsageEventRecord struct {
 	Source                string
 	AuthIndex             string
 	Failed                bool
+	StatusCode            *int
+	Stream                *bool
 	LatencyMS             int64
 	TTFTMS                *int64
 	InputTokens           int64

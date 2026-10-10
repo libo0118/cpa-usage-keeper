@@ -96,6 +96,11 @@ const (
 	migrationAddUsageEventAPIGroupKeyTimestampIndex = "20260905_usage_event_api_group_key_timestamp_index"
 	migrationAddUsageIdentityStatsReset             = "20260910_usage_identity_stats_reset"
 	migrationAddUsageEventSessionFields             = "20260912_usage_event_session_fields"
+	migrationAddUsageEventResponseModel             = "20260918_usage_event_response_model"
+	migrationAddUsageEventStreamStatusCode          = "20260919_usage_event_stream_status_code"
+	migrationNormalizeUsageEventParentSessionNull   = "20260922_normalize_usage_event_parent_session_null"
+	// migrationLimitLatencySamplePoints 缩小已保存散点，事务前必须备份旧 BLOB。
+	migrationLimitLatencySamplePoints = "20260925_limit_latency_sample_points"
 )
 
 type schemaMigration struct {
@@ -246,6 +251,11 @@ func orderedMigrations() []databaseMigration {
 		{version: "20260920_add_qoder_request_credits", run: addQoderRequestCreditsMigration},
 		{version: "20260920_add_workbuddy_request_credits", run: addWorkBuddyRequestCreditsMigration},
 		{version: "20260921_add_upstream_response_model", run: addUpstreamResponseModelMigration},
+		{version: migrationAddUsageEventResponseModel, run: addUsageEventResponseModelMigration},
+		{version: migrationAddUsageEventStreamStatusCode, run: addUsageEventStreamStatusCodeMigration},
+		{version: migrationNormalizeUsageEventParentSessionNull, run: normalizeUsageEventParentSessionNullMigration},
+		{version: migrationLimitLatencySamplePoints, run: limitLatencySamplePointsMigration, destructive: true},
+		{version: "20261010_sync_response_model_aliases", run: syncResponseModelAliasesMigration},
 	}
 }
 

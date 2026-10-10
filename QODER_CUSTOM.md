@@ -2,11 +2,15 @@
 
 `qoder-custom` adds a Qoder quota provider using CPA's authenticated `/v0/management/plugins/qoder/credits` endpoint. Provider tokens stay in CPA. Teams, dedicated/SOTA and shared credits remain separate, with explicit expiry and unknown-capacity handling. Empty refresh tasks are returned as arrays and tolerated by the frontend.
 
-Merged upstream stable baseline: `v1.15.5`. Build custom images with a distinguishable version, for example `v1.15.5-qoder.2`.
+Merged upstream stable baseline: `v1.15.10`. Build custom images with a distinguishable version, for example `v1.15.10-libo.1`.
 
 The credential request drawer also displays Qoder per-request Credits in its existing cost column. Use the matching [CPA core custom branch](https://github.com/libo0118/CLIProxyAPI/tree/qoder-custom), which publishes `qoder_credits` in usage events. Keeper preserves the upstream decimal JSON and optional billing flag in both hot and archive tables. Historical records remain NULL; they are not backfilled as zero.
 
 Explicitly non-billable requests display zero. Billable requests use valid upstream Credits; missing information remains unknown. Verified reductions show a struck-through original value followed by actual consumption, both rounded to two decimals. No USD reference value is invented, and Codex USD calculations remain unchanged.
+
+The branch also retains WorkBuddy quota packages and request Credits, Cursor quota support, native CPA key budgets and observed quota-cycle synchronization, redacted request diagnostics, and direct request-ID lookup. Provider tokens remain in CPA.
+
+The v1.15.10 merge keeps both `response_model` and the existing `upstream_response_model` in ingestion, APIs, exports, and hot/archive storage. Only missing values are filled from the other field; distinct observed values are preserved. The UI prefers the custom upstream-reported value, with the official field as fallback. The compatibility migration preserves Credits, existing request models, and nullable parent sessions; missing stream/status metadata remains unknown. Archived request retention remains disabled by default.
 
 ## Updating
 

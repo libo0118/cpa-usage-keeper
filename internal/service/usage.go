@@ -368,17 +368,28 @@ func usageOverviewSeriesCacheRate(inputTokens, cacheReadTokens int64) *float64 {
 
 func mapUsageOverviewRealtime(realtime repodto.UsageOverviewRealtimeRecord) servicedto.UsageOverviewRealtime {
 	return servicedto.UsageOverviewRealtime{
-		Insights:             &realtime.Insights,
-		Window:               realtime.Window,
-		BucketSeconds:        realtime.BucketSeconds,
-		WindowStart:          realtime.WindowStart,
-		WindowEnd:            realtime.WindowEnd,
-		TokenVelocity:        mapRealtimeTokenVelocity(realtime.TokenVelocity),
-		ResponseLevel:        mapRealtimeResponseLevel(realtime.ResponseLevel),
-		ResponseDistribution: mapRealtimeResponseDistribution(realtime.ResponseDistribution),
-		CurrentUsage:         mapRealtimeCurrentUsage(realtime.CurrentUsage),
-		RequestLevel:         mapRealtimeRequestLevel(realtime.RequestLevel),
-		CacheLevel:           mapRealtimeCacheLevel(realtime.CacheLevel),
+		Insights:       &realtime.Insights,
+		Window:         realtime.Window,
+		BucketSeconds:  realtime.BucketSeconds,
+		WindowStart:    realtime.WindowStart,
+		WindowEnd:      realtime.WindowEnd,
+		TokenVelocity:  mapRealtimeTokenVelocity(realtime.TokenVelocity),
+		LatencyScatter: mapRealtimeLatencyScatter(realtime.LatencyScatter),
+		CurrentUsage:   mapRealtimeCurrentUsage(realtime.CurrentUsage),
+		RequestLevel:   mapRealtimeRequestLevel(realtime.RequestLevel),
+		CacheLevel:     mapRealtimeCacheLevel(realtime.CacheLevel),
+	}
+}
+
+func mapRealtimeLatencyScatter(scatter repodto.RealtimeLatencyScatterRecord) servicedto.RealtimeLatencyScatter {
+	points := make([]servicedto.RealtimeLatencyScatterPoint, 0, len(scatter.Points))
+	for _, point := range scatter.Points {
+		points = append(points, servicedto.RealtimeLatencyScatterPoint{TTFTMS: point.TTFTMS, LatencyMS: point.LatencyMS})
+	}
+	return servicedto.RealtimeLatencyScatter{
+		Points: points, TotalPoints: scatter.TotalPoints,
+		P95TTFTMS: scatter.P95TTFTMS, P95LatencyMS: scatter.P95LatencyMS,
+		MaxTTFTMS: scatter.MaxTTFTMS, MaxLatencyMS: scatter.MaxLatencyMS,
 	}
 }
 
@@ -390,61 +401,6 @@ func mapRealtimeTokenVelocity(points []repodto.RealtimeTokenVelocityPointRecord)
 			TokensPerMinute: point.TokensPerMinute,
 			Tokens:          point.Tokens,
 			CostUSD:         point.CostUSD,
-		})
-	}
-	return result
-}
-
-func mapRealtimeResponseLevel(points []repodto.RealtimeResponseLevelPointRecord) []servicedto.RealtimeResponseLevelPoint {
-	result := make([]servicedto.RealtimeResponseLevelPoint, 0, len(points))
-	for _, point := range points {
-		result = append(result, servicedto.RealtimeResponseLevelPoint{
-			Bucket:       point.Bucket,
-			TTFTP50MS:    point.TTFTP50MS,
-			TTFTP95MS:    point.TTFTP95MS,
-			LatencyP50MS: point.LatencyP50MS,
-			LatencyP95MS: point.LatencyP95MS,
-		})
-	}
-	return result
-}
-
-func mapRealtimeResponseDistribution(distribution repodto.RealtimeResponseDistributionRecord) servicedto.RealtimeResponseDistribution {
-	return servicedto.RealtimeResponseDistribution{
-		TTFT:    mapRealtimeResponseDistributionSeries(distribution.TTFT),
-		Latency: mapRealtimeResponseDistributionSeries(distribution.Latency),
-	}
-}
-
-func mapRealtimeResponseDistributionSeries(series repodto.RealtimeResponseDistributionSeriesRecord) servicedto.RealtimeResponseDistributionSeries {
-	return servicedto.RealtimeResponseDistributionSeries{
-		AverageLine:    mapRealtimeResponseAveragePoints(series.AverageLine),
-		Particles:      mapRealtimeResponseParticles(series.Particles),
-		TotalParticles: series.TotalParticles,
-		Sampled:        series.Sampled,
-		MaxParticles:   series.MaxParticles,
-	}
-}
-
-func mapRealtimeResponseAveragePoints(points []repodto.RealtimeResponseAveragePointRecord) []servicedto.RealtimeResponseAveragePoint {
-	result := make([]servicedto.RealtimeResponseAveragePoint, 0, len(points))
-	for _, point := range points {
-		result = append(result, servicedto.RealtimeResponseAveragePoint{
-			Bucket: point.Bucket,
-			AvgMS:  point.AvgMS,
-		})
-	}
-	return result
-}
-
-func mapRealtimeResponseParticles(points []repodto.RealtimeResponseParticleRecord) []servicedto.RealtimeResponseParticle {
-	result := make([]servicedto.RealtimeResponseParticle, 0, len(points))
-	for _, point := range points {
-		result = append(result, servicedto.RealtimeResponseParticle{
-			Bucket:    point.Bucket,
-			Timestamp: point.Timestamp,
-			MS:        point.MS,
-			Count:     point.Count,
 		})
 	}
 	return result
@@ -722,15 +678,18 @@ func (s *usageService) ListUsageEvents(ctx context.Context, filter servicedto.Us
 	result := make([]servicedto.UsageEventRecord, 0, len(page.Events))
 	for _, row := range page.Events {
 		result = append(result, servicedto.UsageEventRecord{
+			QoderCredits:          row.QoderCredits,
+			WorkBuddyCredits:      row.WorkBuddyCredits,
+			UpstreamResponseModel: row.UpstreamResponseModel,
 			ID:                    row.ID,
 			Timestamp:             row.Timestamp,
 			APIGroupKey:           row.APIGroupKey,
 			Model:                 row.Model,
 			ModelAlias:            row.ModelAlias,
+			ResponseModel:         row.ResponseModel,
 			ReasoningEffort:       row.ReasoningEffort,
 			ServiceTier:           row.ServiceTier,
 			ResponseServiceTier:   row.ResponseServiceTier,
-			UpstreamResponseModel: row.UpstreamResponseModel,
 			ClientIP:              row.ClientIP,
 			XForwardedFor:         row.XForwardedFor,
 			UserAgent:             row.UserAgent,
@@ -742,6 +701,8 @@ func (s *usageService) ListUsageEvents(ctx context.Context, filter servicedto.Us
 			Source:                row.Source,
 			AuthIndex:             row.AuthIndex,
 			Failed:                row.Failed,
+			StatusCode:            row.StatusCode,
+			Stream:                row.Stream,
 			LatencyMS:             row.LatencyMS,
 			TTFTMS:                row.TTFTMS,
 			InputTokens:           row.InputTokens,
@@ -752,8 +713,6 @@ func (s *usageService) ListUsageEvents(ctx context.Context, filter servicedto.Us
 			TotalTokens:           row.TotalTokens,
 			CostUSD:               row.CostUSD,
 			CostAvailable:         row.CostAvailable,
-			QoderCredits:          row.QoderCredits,
-			WorkBuddyCredits:      row.WorkBuddyCredits,
 			PricingStyle:          row.PricingStyle,
 		})
 	}
@@ -780,15 +739,18 @@ func (s *usageService) StreamUsageEvents(ctx context.Context, filter servicedto.
 		Result:       filter.Result,
 	}, func(row repodto.UsageEventRecord) error {
 		return emit(servicedto.UsageEventRecord{
+			QoderCredits:          row.QoderCredits,
+			WorkBuddyCredits:      row.WorkBuddyCredits,
+			UpstreamResponseModel: row.UpstreamResponseModel,
 			ID:                    row.ID,
 			Timestamp:             row.Timestamp,
 			APIGroupKey:           row.APIGroupKey,
 			Model:                 row.Model,
 			ModelAlias:            row.ModelAlias,
+			ResponseModel:         row.ResponseModel,
 			ReasoningEffort:       row.ReasoningEffort,
 			ServiceTier:           row.ServiceTier,
 			ResponseServiceTier:   row.ResponseServiceTier,
-			UpstreamResponseModel: row.UpstreamResponseModel,
 			ClientIP:              row.ClientIP,
 			XForwardedFor:         row.XForwardedFor,
 			UserAgent:             row.UserAgent,
@@ -800,6 +762,8 @@ func (s *usageService) StreamUsageEvents(ctx context.Context, filter servicedto.
 			Source:                row.Source,
 			AuthIndex:             row.AuthIndex,
 			Failed:                row.Failed,
+			StatusCode:            row.StatusCode,
+			Stream:                row.Stream,
 			LatencyMS:             row.LatencyMS,
 			TTFTMS:                row.TTFTMS,
 			InputTokens:           row.InputTokens,
@@ -810,9 +774,7 @@ func (s *usageService) StreamUsageEvents(ctx context.Context, filter servicedto.
 			TotalTokens:           row.TotalTokens,
 			CostUSD:               row.CostUSD,
 			CostAvailable:         row.CostAvailable,
-			QoderCredits:          row.QoderCredits,
 			PricingStyle:          row.PricingStyle,
-			WorkBuddyCredits:      row.WorkBuddyCredits,
 		})
 	}, s.pricing.NewResolver())
 }
